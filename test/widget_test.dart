@@ -24,6 +24,21 @@ void main() {
     expect(find.byIcon(Icons.pause), findsOneWidget);
   });
 
+  testWidgets('smart board can switch card content set', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const BulBitirApp());
+
+    await tester.tap(find.text('Harfler').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sekiller').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sekiller'), findsWidgets);
+  });
+
   testWidgets('mode switch opens solo game screen', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
 

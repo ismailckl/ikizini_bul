@@ -25,34 +25,36 @@ global top 100 listesine skor olarak kaydedilir.
 
 1. Ust mod seciciden Solo acilir.
 2. Tek oyun oturumu zamana karsi calisir.
-3. Oyun bitince skor solo yerel listeye tek kez kaydedilir.
-4. Ayni skor global top 100 repository'sine gonderilir.
-5. Global liste sadece ilk 100'e girebilen skorlari kabul eder.
-6. Solo paneli yerel skor listesini, global top 100 listesini ve global kayit
+3. Oyuncu kart setini Harfler, Sayilar veya Sekiller arasindan secebilir.
+4. Oyun bitince skor solo yerel listeye tek kez kaydedilir.
+5. Ayni skor global top 100 repository'sine gonderilir.
+6. Global liste sadece ilk 100'e girebilen skorlari kabul eder.
+7. Solo paneli yerel skor listesini, global top 100 listesini ve global kayit
    durumunu gosterir.
 
 ## Mevcut Akilli Tahta Akisi
 
 1. Ogretmen ust bardan takim oyuncularini duzenleyebilir.
-2. Ogretmen yarisi baslatir.
-3. Sol ve sag tahta birbirinden bagimsiz sure, hamle ve eslesme sayaci ile
+2. Ogretmen kart setini Harfler, Sayilar veya Sekiller arasindan secebilir.
+3. Ogretmen yarisi baslatir.
+4. Sol ve sag tahta birbirinden bagimsiz sure, hamle ve eslesme sayaci ile
    calisir.
-4. Her takimda aktif ogrenci ekranda gorunur.
-5. Dogru eslesmede sira bir sonraki takim arkadasina gecer.
-6. Yanlis eslesmede ayni ogrenci devam eder; ust uste iki yanlista sira gecer.
-7. Ilk bitiren taraf kazanan olur.
-8. Kazananin skoru secili yerel sinif listesine tek kez kaydedilir.
-9. Turnuva seridi secili listeyi, ilk 3 skoru ve son kayit durumunu gosterir.
-10. Ogretmen yeni sinif/turnuva listesi olusturabilir veya secili listeyi
+5. Her takimda aktif ogrenci ekranda gorunur.
+6. Dogru eslesmede sira bir sonraki takim arkadasina gecer.
+7. Yanlis eslesmede ayni ogrenci devam eder; ust uste iki yanlista sira gecer.
+8. Ilk bitiren taraf kazanan olur.
+9. Kazananin skoru secili yerel sinif listesine tek kez kaydedilir.
+10. Turnuva seridi secili listeyi, ilk 3 skoru ve son kayit durumunu gosterir.
+11. Ogretmen yeni sinif/turnuva listesi olusturabilir veya secili listeyi
     silebilir.
-11. Takim oyunculari ve sinif listeleri cihaz icinde ucretsiz olarak saklanir.
+12. Takim oyunculari ve sinif listeleri cihaz icinde ucretsiz olarak saklanir.
 
 ## Sonraki Adimlar
 
 1. Global repository'yi ucretsiz/ucuz bir backend API'ye bagla ya da okul ici
    cihazlarda sadece yerel modla devam et.
 2. Akilli tahta cihazinda coklu dokunmatik ve buyuk ekran testleri yap.
-3. Kart seti/tema editoru ekleyerek farkli ders iceriklerini oyuna bagla.
+3. Ogretmenin kendi kart setini girebilecegi editoru ekle.
 
 ## Komutlar
 

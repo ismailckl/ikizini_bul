@@ -1,3 +1,4 @@
+import 'package:ikizini_bul/game/card_content_set.dart';
 import 'package:ikizini_bul/game/memory_card.dart';
 import 'package:ikizini_bul/game/memory_game_config.dart';
 import 'package:ikizini_bul/game/memory_game_controller.dart';
@@ -98,5 +99,47 @@ void main() {
     expect(race.winner, RaceSide.left);
 
     race.dispose();
+  });
+
+  test('selected content set builds the matching deck labels and visuals', () {
+    final numbers = MemoryGameController(
+      playerName: 'A',
+      sideLabel: 'numbers',
+      config: const MemoryGameConfig(
+        pairCount: 3,
+        columns: 3,
+        contentSet: CardContentSets.numbers,
+      ),
+      seed: 3,
+    );
+
+    expect({for (final card in numbers.cards) card.label}, {'1', '2', '3'});
+    expect(
+      numbers.cards.every((card) => card.visual == CardVisualKind.text),
+      isTrue,
+    );
+
+    final shapes = MemoryGameController(
+      playerName: 'A',
+      sideLabel: 'shapes',
+      config: const MemoryGameConfig(
+        pairCount: 3,
+        columns: 3,
+        contentSet: CardContentSets.shapes,
+      ),
+      seed: 4,
+    );
+
+    expect(
+      {for (final card in shapes.cards) card.label},
+      {'Daire', 'Ucgen', 'Kare'},
+    );
+    expect(
+      shapes.cards.any((card) => card.visual != CardVisualKind.text),
+      isTrue,
+    );
+
+    numbers.dispose();
+    shapes.dispose();
   });
 }

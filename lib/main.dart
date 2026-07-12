@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'game/card_content_set.dart';
 import 'game/memory_card.dart';
 import 'game/memory_game_config.dart';
 import 'game/memory_game_controller.dart';
@@ -214,23 +215,44 @@ class SmartBoardRaceScreen extends StatefulWidget {
 }
 
 class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
-  late final RaceController _race;
-  late final RelayRaceController _relay;
+  late RaceController _race;
+  late RelayRaceController _relay;
   late final ClassLeaderboardController _classLeaderboard;
   late final RelayTeamStore _relayTeamStore;
+  CardContentSet _smartBoardContentSet = CardContentSets.letters;
   int? _savedRaceNumber;
 
   @override
   void initState() {
     super.initState();
-    const config = MemoryGameConfig(pairCount: 8, columns: 4);
     _classLeaderboard = ClassLeaderboardController(
       repository: widget.localRepository,
       listStore: widget.classLeaderboardStore,
     );
     unawaited(_classLeaderboard.load());
     _relayTeamStore = widget.relayTeamStore ?? MemoryRelayTeamStore();
-    _race = RaceController(
+    _race = _createRace();
+    _relay = _createRelay(
+      leftTeam: RelayTeamState(
+        teamName: 'Takim A',
+        players: ['Ali', 'Zeynep', 'Ece', 'Mert'],
+      ),
+      rightTeam: RelayTeamState(
+        teamName: 'Takim B',
+        players: ['Deniz', 'Ayse', 'Can', 'Elif'],
+      ),
+    );
+    _race.addListener(_saveWinnerIfNeeded);
+    unawaited(_loadStoredTeams());
+  }
+
+  RaceController _createRace() {
+    final config = MemoryGameConfig(
+      pairCount: 8,
+      columns: 4,
+      contentSet: _smartBoardContentSet,
+    );
+    return RaceController(
       left: MemoryGameController(
         playerName: 'Takim A',
         sideLabel: 'Sol Alan',
@@ -244,20 +266,18 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
         seed: 2026,
       ),
     );
-    _relay = RelayRaceController(
+  }
+
+  RelayRaceController _createRelay({
+    required RelayTeamState leftTeam,
+    required RelayTeamState rightTeam,
+  }) {
+    return RelayRaceController(
       leftGame: _race.left,
       rightGame: _race.right,
-      leftTeam: RelayTeamState(
-        teamName: 'Takim A',
-        players: ['Ali', 'Zeynep', 'Ece', 'Mert'],
-      ),
-      rightTeam: RelayTeamState(
-        teamName: 'Takim B',
-        players: ['Deniz', 'Ayse', 'Can', 'Elif'],
-      ),
+      leftTeam: leftTeam,
+      rightTeam: rightTeam,
     );
-    _race.addListener(_saveWinnerIfNeeded);
-    unawaited(_loadStoredTeams());
   }
 
   @override
@@ -286,6 +306,35 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     _savedRaceNumber = null;
     _race.resetRace();
     _relay.resetTeams();
+  }
+
+  void _changeSmartBoardContentSet(CardContentSet contentSet) {
+    if (_smartBoardContentSet.id == contentSet.id) {
+      return;
+    }
+
+    final leftTeam = _relay.leftTeam.copyWith(
+      activePlayerIndex: 0,
+      consecutiveMistakes: 0,
+    );
+    final rightTeam = _relay.rightTeam.copyWith(
+      activePlayerIndex: 0,
+      consecutiveMistakes: 0,
+    );
+    final oldRace = _race;
+    final oldRelay = _relay;
+    oldRace.removeListener(_saveWinnerIfNeeded);
+
+    setState(() {
+      _savedRaceNumber = null;
+      _smartBoardContentSet = contentSet;
+      _race = _createRace();
+      _relay = _createRelay(leftTeam: leftTeam, rightTeam: rightTeam);
+      _race.addListener(_saveWinnerIfNeeded);
+    });
+
+    oldRelay.dispose();
+    oldRace.dispose();
   }
 
   Future<void> _loadStoredTeams() async {
@@ -330,8 +379,10 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
           children: [
             TeacherRaceBar(
               race: _race,
+              selectedContentSet: _smartBoardContentSet,
               onResetRace: _resetRace,
               onEditTeams: _editTeams,
+              onContentSetChanged: _changeSmartBoardContentSet,
             ),
             TournamentScoreStrip(controller: _classLeaderboard),
             Expanded(
@@ -572,6 +623,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   late MemoryGameController _game;
   late final SoloLeaderboardController _leaderboard;
   late final GlobalLeaderboardController _globalLeaderboard;
+  CardContentSet _soloContentSet = CardContentSets.letters;
   bool _savedCurrentRun = false;
   bool _hasSoloPlayer = false;
 
@@ -613,7 +665,11 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     return MemoryGameController(
       playerName: playerName,
       sideLabel: 'Mobil Solo',
-      config: const MemoryGameConfig(pairCount: 6, columns: 3),
+      config: MemoryGameConfig(
+        pairCount: 6,
+        columns: 3,
+        contentSet: _soloContentSet,
+      ),
       seed: 404,
     );
   }
@@ -631,6 +687,16 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     setState(() {
       _hasSoloPlayer = false;
     });
+  }
+
+  void _changeSoloContentSet(CardContentSet contentSet) {
+    if (_soloContentSet.id == contentSet.id) {
+      return;
+    }
+    final playerName = _game.playerName;
+    _soloContentSet = contentSet;
+    _replaceSoloGame(playerName);
+    setState(() {});
   }
 
   void _replaceSoloGame(String playerName) {
@@ -672,11 +738,13 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                       children: [
                         SoloTopBar(
                           controller: _game,
+                          selectedContentSet: _soloContentSet,
                           onStart: _game.start,
                           onPause: _game.pause,
                           onResume: _game.resume,
                           onReset: _resetSolo,
                           onChangePlayer: _changeSoloPlayer,
+                          onContentSetChanged: _changeSoloContentSet,
                         ),
                         const SizedBox(height: 14),
                         Expanded(
@@ -835,20 +903,24 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
 class SoloTopBar extends StatelessWidget {
   const SoloTopBar({
     required this.controller,
+    required this.selectedContentSet,
     required this.onStart,
     required this.onPause,
     required this.onResume,
     required this.onReset,
     required this.onChangePlayer,
+    required this.onContentSetChanged,
     super.key,
   });
 
   final MemoryGameController controller;
+  final CardContentSet selectedContentSet;
   final VoidCallback onStart;
   final VoidCallback onPause;
   final VoidCallback onResume;
   final VoidCallback onReset;
   final VoidCallback onChangePlayer;
+  final ValueChanged<CardContentSet> onContentSetChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -903,6 +975,19 @@ class SoloTopBar extends StatelessWidget {
             ],
           );
           final controls = [
+            if (compact)
+              ContentSetMenuButton(
+                selectedContentSet: selectedContentSet,
+                onChanged: onContentSetChanged,
+              )
+            else
+              SizedBox(
+                width: 144,
+                child: ContentSetDropdown(
+                  selectedContentSet: selectedContentSet,
+                  onChanged: onContentSetChanged,
+                ),
+              ),
             SizedBox(
               width: 116,
               child: StatPill(
@@ -1574,14 +1659,18 @@ class LastSavedScore extends StatelessWidget {
 class TeacherRaceBar extends StatelessWidget {
   const TeacherRaceBar({
     required this.race,
+    required this.selectedContentSet,
     required this.onResetRace,
     required this.onEditTeams,
+    required this.onContentSetChanged,
     super.key,
   });
 
   final RaceController race;
+  final CardContentSet selectedContentSet;
   final VoidCallback onResetRace;
   final VoidCallback onEditTeams;
+  final ValueChanged<CardContentSet> onContentSetChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1639,16 +1728,20 @@ class TeacherRaceBar extends StatelessWidget {
               if (compact)
                 CompactRaceActions(
                   race: race,
+                  selectedContentSet: selectedContentSet,
                   canResume: canResume,
                   onResetRace: onResetRace,
                   onEditTeams: onEditTeams,
+                  onContentSetChanged: onContentSetChanged,
                 )
               else
                 FullRaceActions(
                   race: race,
+                  selectedContentSet: selectedContentSet,
                   canResume: canResume,
                   onResetRace: onResetRace,
                   onEditTeams: onEditTeams,
+                  onContentSetChanged: onContentSetChanged,
                 ),
             ],
           ),
@@ -1661,22 +1754,34 @@ class TeacherRaceBar extends StatelessWidget {
 class FullRaceActions extends StatelessWidget {
   const FullRaceActions({
     required this.race,
+    required this.selectedContentSet,
     required this.canResume,
     required this.onResetRace,
     required this.onEditTeams,
+    required this.onContentSetChanged,
     super.key,
   });
 
   final RaceController race;
+  final CardContentSet selectedContentSet;
   final bool canResume;
   final VoidCallback onResetRace;
   final VoidCallback onEditTeams;
+  final ValueChanged<CardContentSet> onContentSetChanged;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        SizedBox(
+          width: 144,
+          child: ContentSetDropdown(
+            selectedContentSet: selectedContentSet,
+            onChanged: onContentSetChanged,
+          ),
+        ),
+        const SizedBox(width: 10),
         FilledButton.icon(
           onPressed: canResume ? race.resumeBoth : race.startBoth,
           icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
@@ -1708,22 +1813,30 @@ class FullRaceActions extends StatelessWidget {
 class CompactRaceActions extends StatelessWidget {
   const CompactRaceActions({
     required this.race,
+    required this.selectedContentSet,
     required this.canResume,
     required this.onResetRace,
     required this.onEditTeams,
+    required this.onContentSetChanged,
     super.key,
   });
 
   final RaceController race;
+  final CardContentSet selectedContentSet;
   final bool canResume;
   final VoidCallback onResetRace;
   final VoidCallback onEditTeams;
+  final ValueChanged<CardContentSet> onContentSetChanged;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        ContentSetMenuButton(
+          selectedContentSet: selectedContentSet,
+          onChanged: onContentSetChanged,
+        ),
         Tooltip(
           message: canResume ? 'Devam' : 'Baslat',
           child: IconButton.filled(
@@ -1756,6 +1869,96 @@ class CompactRaceActions extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ContentSetDropdown extends StatelessWidget {
+  const ContentSetDropdown({
+    required this.selectedContentSet,
+    required this.onChanged,
+    super.key,
+  });
+
+  final CardContentSet selectedContentSet;
+  final ValueChanged<CardContentSet> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xfff3f7f6),
+        border: Border.all(color: const Color(0xffd5e1dd)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<CardContentSet>(
+          value: selectedContentSet,
+          isExpanded: true,
+          icon: const Icon(Icons.expand_more),
+          items: [
+            for (final contentSet in CardContentSets.all)
+              DropdownMenuItem(
+                value: contentSet,
+                child: Text(
+                  contentSet.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              onChanged(value);
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class ContentSetMenuButton extends StatelessWidget {
+  const ContentSetMenuButton({
+    required this.selectedContentSet,
+    required this.onChanged,
+    super.key,
+  });
+
+  final CardContentSet selectedContentSet;
+  final ValueChanged<CardContentSet> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<CardContentSet>(
+      tooltip: 'Kart Seti',
+      initialValue: selectedContentSet,
+      icon: const Icon(Icons.style),
+      onSelected: onChanged,
+      itemBuilder: (context) {
+        return [
+          for (final contentSet in CardContentSets.all)
+            PopupMenuItem(
+              value: contentSet,
+              child: Row(
+                children: [
+                  Icon(
+                    contentSet.id == selectedContentSet.id
+                        ? Icons.check_circle
+                        : Icons.circle_outlined,
+                    size: 18,
+                    color: const Color(0xff0f766e),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(contentSet.name),
+                ],
+              ),
+            ),
+        ];
+      },
     );
   }
 }
@@ -2160,8 +2363,8 @@ class MemoryCardTile extends StatelessWidget {
                         key: ValueKey('face-${card.id}-${card.status.name}'),
                         fit: BoxFit.scaleDown,
                         child: CardFace(
-                          pairId: card.pairId,
                           label: card.label,
+                          visual: card.visual,
                           accent: accent,
                           matched: isMatched,
                         ),
@@ -2186,15 +2389,15 @@ class MemoryCardTile extends StatelessWidget {
 
 class CardFace extends StatelessWidget {
   const CardFace({
-    required this.pairId,
     required this.label,
+    required this.visual,
     required this.accent,
     required this.matched,
     super.key,
   });
 
-  final int pairId;
   final String label;
+  final CardVisualKind visual;
   final Color accent;
   final bool matched;
 
@@ -2204,36 +2407,170 @@ class CardFace extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(_iconForPair(pairId), size: 44, color: color),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w900,
-            fontSize: 28,
-          ),
-        ),
-      ],
+      children: visual == CardVisualKind.text
+          ? [
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 64,
+                ),
+              ),
+            ]
+          : [
+              ShapeGlyph(visual: visual, color: color),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 24,
+                ),
+              ),
+            ],
     );
   }
+}
 
-  IconData _iconForPair(int pairId) {
-    const icons = [
-      Icons.auto_awesome,
-      Icons.bolt,
-      Icons.favorite,
-      Icons.lightbulb,
-      Icons.rocket_launch,
-      Icons.eco,
-      Icons.psychology,
-      Icons.palette,
-      Icons.science,
-      Icons.school,
-      Icons.extension,
-      Icons.sports_esports,
-    ];
-    return icons[pairId % icons.length];
+class ShapeGlyph extends StatelessWidget {
+  const ShapeGlyph({required this.visual, required this.color, super.key});
+
+  final CardVisualKind visual;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 72,
+      height: 72,
+      child: CustomPaint(
+        painter: ShapeGlyphPainter(visual: visual, color: color),
+      ),
+    );
+  }
+}
+
+class ShapeGlyphPainter extends CustomPainter {
+  const ShapeGlyphPainter({required this.visual, required this.color});
+
+  final CardVisualKind visual;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) * 0.38;
+
+    switch (visual) {
+      case CardVisualKind.circle:
+        canvas.drawCircle(center, radius, paint);
+      case CardVisualKind.triangle:
+        canvas.drawPath(
+          Path()
+            ..moveTo(center.dx, center.dy - radius)
+            ..lineTo(center.dx + radius, center.dy + radius)
+            ..lineTo(center.dx - radius, center.dy + radius)
+            ..close(),
+          paint,
+        );
+      case CardVisualKind.square:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: center,
+              width: radius * 1.75,
+              height: radius * 1.75,
+            ),
+            Radius.circular(radius * 0.18),
+          ),
+          paint,
+        );
+      case CardVisualKind.star:
+        canvas.drawPath(_starPath(center, radius), paint);
+      case CardVisualKind.heart:
+        canvas.drawPath(_heartPath(size), paint);
+      case CardVisualKind.diamond:
+        canvas.drawPath(
+          Path()
+            ..moveTo(center.dx, center.dy - radius)
+            ..lineTo(center.dx + radius, center.dy)
+            ..lineTo(center.dx, center.dy + radius)
+            ..lineTo(center.dx - radius, center.dy)
+            ..close(),
+          paint,
+        );
+      case CardVisualKind.plus:
+        canvas.drawPath(_plusPath(center, radius), paint);
+      case CardVisualKind.oval:
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: center,
+            width: radius * 1.95,
+            height: radius * 1.2,
+          ),
+          paint,
+        );
+      case CardVisualKind.text:
+        break;
+    }
+  }
+
+  Path _starPath(Offset center, double radius) {
+    final path = Path();
+    for (var i = 0; i < 10; i++) {
+      final angle = -math.pi / 2 + i * math.pi / 5;
+      final pointRadius = i.isEven ? radius : radius * 0.45;
+      final point = Offset(
+        center.dx + math.cos(angle) * pointRadius,
+        center.dy + math.sin(angle) * pointRadius,
+      );
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    return path..close();
+  }
+
+  Path _heartPath(Size size) {
+    final w = size.width;
+    final h = size.height;
+    return Path()
+      ..moveTo(w * 0.5, h * 0.82)
+      ..cubicTo(w * 0.08, h * 0.52, w * 0.16, h * 0.18, w * 0.38, h * 0.22)
+      ..cubicTo(w * 0.46, h * 0.23, w * 0.5, h * 0.3, w * 0.5, h * 0.34)
+      ..cubicTo(w * 0.5, h * 0.3, w * 0.54, h * 0.23, w * 0.62, h * 0.22)
+      ..cubicTo(w * 0.84, h * 0.18, w * 0.92, h * 0.52, w * 0.5, h * 0.82)
+      ..close();
+  }
+
+  Path _plusPath(Offset center, double radius) {
+    final arm = radius * 0.38;
+    final length = radius * 1.05;
+    return Path()
+      ..moveTo(center.dx - arm, center.dy - length)
+      ..lineTo(center.dx + arm, center.dy - length)
+      ..lineTo(center.dx + arm, center.dy - arm)
+      ..lineTo(center.dx + length, center.dy - arm)
+      ..lineTo(center.dx + length, center.dy + arm)
+      ..lineTo(center.dx + arm, center.dy + arm)
+      ..lineTo(center.dx + arm, center.dy + length)
+      ..lineTo(center.dx - arm, center.dy + length)
+      ..lineTo(center.dx - arm, center.dy + arm)
+      ..lineTo(center.dx - length, center.dy + arm)
+      ..lineTo(center.dx - length, center.dy - arm)
+      ..lineTo(center.dx - arm, center.dy - arm)
+      ..close();
+  }
+
+  @override
+  bool shouldRepaint(covariant ShapeGlyphPainter oldDelegate) {
+    return oldDelegate.visual != visual || oldDelegate.color != color;
   }
 }

@@ -206,15 +206,18 @@ class MemoryGameController extends ChangeNotifier {
   }
 
   List<MemoryCard> _buildDeck() {
-    final labels = _cardLabels();
+    final items = config.contentSet.items;
+    assert(config.pairCount <= items.length);
     final deck = <MemoryCard>[];
     for (var pairIndex = 0; pairIndex < config.pairCount; pairIndex++) {
+      final item = items[pairIndex];
       for (var copy = 0; copy < 2; copy++) {
         deck.add(
           MemoryCard(
             id: 'pair-$pairIndex-$copy',
             pairId: pairIndex,
-            label: labels[pairIndex % labels.length],
+            label: item.label,
+            visual: item.visual,
           ),
         );
       }
@@ -222,10 +225,6 @@ class MemoryGameController extends ChangeNotifier {
     final random = Random(seed);
     deck.shuffle(random);
     return deck;
-  }
-
-  List<String> _cardLabels() {
-    return const ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   }
 
   void _startTicker() {
