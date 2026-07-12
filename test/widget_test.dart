@@ -8,8 +8,23 @@ import 'package:ikizini_bul/team/relay_team_state.dart';
 import 'package:ikizini_bul/team/relay_team_store.dart';
 
 void main() {
+  Future<void> switchToSmartBoard(WidgetTester tester) async {
+    await tester.tap(find.text('Akilli Tahta').first);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('app opens in mobile solo mode first', (tester) async {
+    await tester.pumpWidget(const BulBitirApp());
+
+    expect(find.text('Ikizini Bul'), findsWidgets);
+    expect(find.text('Oyuncu adi'), findsOneWidget);
+    expect(find.text('Oyuna Gir'), findsOneWidget);
+    expect(find.text('Skorlarim'), findsOneWidget);
+  });
+
   testWidgets('smart board race screen renders both sides', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
+    await switchToSmartBoard(tester);
 
     expect(find.text('Ikizini Bul'), findsWidgets);
     expect(find.text('Takim A'), findsOneWidget);
@@ -29,6 +44,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(const BulBitirApp());
+    await switchToSmartBoard(tester);
 
     await tester.tap(find.text('Harfler').first);
     await tester.pumpAndSettle();
@@ -39,17 +55,15 @@ void main() {
     expect(find.text('Sekiller'), findsWidgets);
   });
 
-  testWidgets('mode switch opens solo game screen', (tester) async {
+  testWidgets('mobile player can enter name and start solo screen', (
+    tester,
+  ) async {
     await tester.pumpWidget(const BulBitirApp());
-
-    await tester.tap(find.text('Solo').first);
-    await tester.pumpAndSettle();
 
     expect(find.text('Zamana karsi'), findsOneWidget);
     expect(find.text('Oyuncu adi'), findsOneWidget);
     expect(find.text('Oyuna Gir'), findsOneWidget);
-    expect(find.text('Solo Skorlar'), findsOneWidget);
-    expect(find.text('Global Top 100'), findsOneWidget);
+    expect(find.text('Skorlarim'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).last, 'Ismail');
     await tester.tap(find.text('Oyuna Gir'));
@@ -61,6 +75,7 @@ void main() {
 
   testWidgets('teacher can edit relay team players', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
+    await switchToSmartBoard(tester);
 
     await tester.tap(find.byIcon(Icons.groups).first);
     await tester.pumpAndSettle();
@@ -85,6 +100,7 @@ void main() {
     );
 
     await tester.pumpWidget(BulBitirApp(relayTeamStore: teamStore));
+    await switchToSmartBoard(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Sira: Selin'), findsOneWidget);
@@ -97,6 +113,7 @@ void main() {
     final classStore = MemoryClassLeaderboardStore();
 
     await tester.pumpWidget(BulBitirApp(classLeaderboardStore: classStore));
+    await switchToSmartBoard(tester);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Liste Ekle'));

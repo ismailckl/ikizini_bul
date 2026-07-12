@@ -1,19 +1,16 @@
 # Ikizini Bul
 
 Ikizini Bul, mobil ve akilli tahta icin tasarlanan rekabetci bir hafiza
-eslestirme oyunudur. Uygulama tek oyun motorunu kullanarak iki deneyim sunar:
-mobil solo mod ve akilli tahta split-screen yaris modu. Akilli tahta yaris
-sonucu secili yerel sinif listesine, solo sonuc ise hem solo yerel listeye hem
-global top 100 listesine skor olarak kaydedilir.
+eslestirme oyunudur. Uygulama mobil solo modda acilir; isteyen kullanici ust
+mod seciciden akilli tahta split-screen yaris moduna gecebilir. Skorlar ve
+sinif listeleri cihaz icinde ucretsiz olarak saklanir.
 
 ## Ilk Mimari
 
 - `lib/game`: UI'dan ayrilmis oyun motoru, kart durumlari ve split-screen yaris
   controller'i.
-- `lib/leaderboards`: Global top 100 ve yerel sinif listeleri icin ortak
-  repository arayuzleri.
-- `lib/leaderboards/global`: Sunucu tarafindaki top 100 kuralini temsil eden
-  gecici repository ve global leaderboard controller'i.
+- `lib/leaderboards`: Yerel skor ve sinif listeleri icin ortak repository
+  arayuzleri.
 - `lib/leaderboards/local`: Cihaz ici ozel liste mantiginin store tabanli
   repository'si, JSON codec'i, memory store'u, ucretsiz shared_preferences
   store'u, olusturulabilir sinif listeleri, sinif listesi controller'i ve solo
@@ -23,14 +20,11 @@ global top 100 listesine skor olarak kaydedilir.
 
 ## Mevcut Mobil Solo Akisi
 
-1. Ust mod seciciden Solo acilir.
+1. Uygulama mobil solo modda acilir.
 2. Tek oyun oturumu zamana karsi calisir.
 3. Oyuncu kart setini Harfler, Sayilar veya Sekiller arasindan secebilir.
 4. Oyun bitince skor solo yerel listeye tek kez kaydedilir.
-5. Ayni skor global top 100 repository'sine gonderilir.
-6. Global liste sadece ilk 100'e girebilen skorlari kabul eder.
-7. Solo paneli yerel skor listesini, global top 100 listesini ve global kayit
-   durumunu gosterir.
+5. Solo paneli cihazdaki en iyi yerel skorlari gosterir.
 
 ## Mevcut Akilli Tahta Akisi
 
@@ -51,10 +45,9 @@ global top 100 listesine skor olarak kaydedilir.
 
 ## Sonraki Adimlar
 
-1. Global repository'yi ucretsiz/ucuz bir backend API'ye bagla ya da okul ici
-   cihazlarda sadece yerel modla devam et.
+1. Mobil cihazda farkli ekran boyutlariyla son UI testlerini yap.
 2. Akilli tahta cihazinda coklu dokunmatik ve buyuk ekran testleri yap.
-3. Ogretmenin kendi kart setini girebilecegi editoru ekle.
+3. Yayina hazir imzali Android build ayarlarini tamamla.
 
 ## Komutlar
 

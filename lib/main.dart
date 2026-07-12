@@ -8,10 +8,7 @@ import 'game/memory_card.dart';
 import 'game/memory_game_config.dart';
 import 'game/memory_game_controller.dart';
 import 'game/race_controller.dart';
-import 'leaderboards/global/global_leaderboard_controller.dart';
-import 'leaderboards/global/global_top100_repository.dart';
 import 'leaderboards/leaderboard_entry.dart';
-import 'leaderboards/leaderboard_repository.dart';
 import 'leaderboards/local/class_leaderboard_controller.dart';
 import 'leaderboards/local/class_leaderboard_store.dart';
 import 'leaderboards/local/local_leaderboard_repository.dart';
@@ -97,8 +94,7 @@ class GameModeShell extends StatefulWidget {
 
 class _GameModeShellState extends State<GameModeShell> {
   late final LocalLeaderboardRepository _localRepository;
-  final GlobalTop100Repository _globalRepository = GlobalTop100Repository();
-  PlayMode _selectedMode = PlayMode.smartBoard;
+  PlayMode _selectedMode = PlayMode.solo;
 
   @override
   void initState() {
@@ -109,8 +105,8 @@ class _GameModeShellState extends State<GameModeShell> {
   @override
   Widget build(BuildContext context) {
     final modeIndex = switch (_selectedMode) {
-      PlayMode.smartBoard => 0,
-      PlayMode.solo => 1,
+      PlayMode.solo => 0,
+      PlayMode.smartBoard => 1,
     };
 
     return Scaffold(
@@ -127,14 +123,11 @@ class _GameModeShellState extends State<GameModeShell> {
               child: IndexedStack(
                 index: modeIndex,
                 children: [
+                  SoloGameScreen(localRepository: _localRepository),
                   SmartBoardRaceScreen(
                     localRepository: _localRepository,
                     relayTeamStore: widget.relayTeamStore,
                     classLeaderboardStore: widget.classLeaderboardStore,
-                  ),
-                  SoloGameScreen(
-                    localRepository: _localRepository,
-                    globalRepository: _globalRepository,
                   ),
                 ],
               ),
@@ -177,14 +170,14 @@ class ModeSwitchBar extends StatelessWidget {
           SegmentedButton<PlayMode>(
             segments: const [
               ButtonSegment(
+                value: PlayMode.solo,
+                icon: Icon(Icons.phone_android),
+                label: Text('Mobil'),
+              ),
+              ButtonSegment(
                 value: PlayMode.smartBoard,
                 icon: Icon(Icons.dashboard),
                 label: Text('Akilli Tahta'),
-              ),
-              ButtonSegment(
-                value: PlayMode.solo,
-                icon: Icon(Icons.phone_android),
-                label: Text('Solo'),
               ),
             ],
             selected: {selectedMode},
@@ -606,14 +599,9 @@ class TeamPlayersField extends StatelessWidget {
 }
 
 class SoloGameScreen extends StatefulWidget {
-  const SoloGameScreen({
-    required this.localRepository,
-    required this.globalRepository,
-    super.key,
-  });
+  const SoloGameScreen({required this.localRepository, super.key});
 
   final LocalLeaderboardRepository localRepository;
-  final GlobalTop100Repository globalRepository;
 
   @override
   State<SoloGameScreen> createState() => _SoloGameScreenState();
@@ -622,7 +610,6 @@ class SoloGameScreen extends StatefulWidget {
 class _SoloGameScreenState extends State<SoloGameScreen> {
   late MemoryGameController _game;
   late final SoloLeaderboardController _leaderboard;
-  late final GlobalLeaderboardController _globalLeaderboard;
   CardContentSet _soloContentSet = CardContentSets.letters;
   bool _savedCurrentRun = false;
   bool _hasSoloPlayer = false;
@@ -632,9 +619,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     super.initState();
     _leaderboard = SoloLeaderboardController(repository: widget.localRepository)
       ..load();
-    _globalLeaderboard = GlobalLeaderboardController(
-      repository: widget.globalRepository,
-    )..load();
     _game = _createSoloGame('Oyuncu');
     _game.addListener(_saveFinishedRun);
   }
@@ -644,7 +628,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     _game.removeListener(_saveFinishedRun);
     _game.dispose();
     _leaderboard.dispose();
-    _globalLeaderboard.dispose();
     super.dispose();
   }
 
@@ -657,14 +640,13 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   }
 
   Future<void> _saveFinishedRunResults() async {
-    final savedScore = await _leaderboard.saveSoloResult(_game);
-    await _globalLeaderboard.submit(savedScore.entry);
+    await _leaderboard.saveSoloResult(_game);
   }
 
   MemoryGameController _createSoloGame(String playerName) {
     return MemoryGameController(
       playerName: playerName,
-      sideLabel: 'Mobil Solo',
+      sideLabel: 'Mobil',
       config: MemoryGameConfig(
         pairCount: 6,
         columns: 3,
@@ -706,20 +688,18 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     _game.addListener(_saveFinishedRun);
     _savedCurrentRun = false;
     _leaderboard.clearLastSaved();
-    _globalLeaderboard.clearLastSubmit();
   }
 
   void _resetSolo() {
     _savedCurrentRun = false;
     _leaderboard.clearLastSaved();
-    _globalLeaderboard.clearLastSubmit();
     _game.reset();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_game, _leaderboard, _globalLeaderboard]),
+      animation: Listenable.merge([_game, _leaderboard]),
       builder: (context, _) {
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -727,7 +707,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
             final board = SoloBoard(controller: _game);
             final leaderboard = SoloLeaderboardPanel(
               localController: _leaderboard,
-              globalController: _globalLeaderboard,
             );
 
             return Container(
@@ -829,7 +808,7 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
                   ),
                   const SizedBox(height: 18),
                   const Text(
-                    'Solo',
+                    'Mobil Oyun',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xff0f766e),
@@ -961,7 +940,7 @@ class SoloTopBar extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Solo - Zamana karsi',
+                      'Mobil - Zamana karsi',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1091,19 +1070,13 @@ class SoloBoard extends StatelessWidget {
 }
 
 class SoloLeaderboardPanel extends StatelessWidget {
-  const SoloLeaderboardPanel({
-    required this.localController,
-    required this.globalController,
-    super.key,
-  });
+  const SoloLeaderboardPanel({required this.localController, super.key});
 
   final SoloLeaderboardController localController;
-  final GlobalLeaderboardController globalController;
 
   @override
   Widget build(BuildContext context) {
     final localEntries = localController.entries.take(5).toList();
-    final globalEntries = globalController.entries.take(5).toList();
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1120,84 +1093,20 @@ class SoloLeaderboardPanel extends StatelessWidget {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Solo Skorlar',
+                  'Skorlarim',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
                 ),
               ),
-              GlobalSubmitChip(result: globalController.lastSubmitResult),
             ],
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: CompactLeaderboardColumn(
-                    title: 'Yerel',
-                    emptyLabel: 'Yerel skor yok',
-                    entries: localEntries,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CompactLeaderboardColumn(
-                    title: 'Global Top 100',
-                    emptyLabel: 'Global skor yok',
-                    entries: globalEntries,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class GlobalSubmitChip extends StatelessWidget {
-  const GlobalSubmitChip({required this.result, super.key});
-
-  final ScoreSubmitResult? result;
-
-  @override
-  Widget build(BuildContext context) {
-    final status = result?.status;
-    final label = switch (status) {
-      ScoreSubmitStatus.accepted =>
-        result?.rank == null ? 'Global kabul' : 'Global #${result!.rank}',
-      ScoreSubmitStatus.rejectedBelowThreshold => 'Top 100 disi',
-      ScoreSubmitStatus.queuedOffline => 'Global kuyrukta',
-      null => 'Global bekliyor',
-    };
-    final color = switch (status) {
-      ScoreSubmitStatus.accepted => const Color(0xff15803d),
-      ScoreSubmitStatus.rejectedBelowThreshold => const Color(0xffb45309),
-      ScoreSubmitStatus.queuedOffline => const Color(0xff2563eb),
-      null => const Color(0xff60736f),
-    };
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 36, maxWidth: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: color.withAlpha(24),
-        border: Border.all(color: color.withAlpha(90)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.public, size: 18, color: color),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: color, fontWeight: FontWeight.w900),
+            child: CompactLeaderboardColumn(
+              title: 'En iyi skorlar',
+              emptyLabel: 'Henuz skor yok',
+              entries: localEntries,
             ),
           ),
         ],
