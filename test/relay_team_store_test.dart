@@ -1,5 +1,5 @@
-import 'package:bul_bitir/team/relay_team_state.dart';
-import 'package:bul_bitir/team/relay_team_store.dart';
+import 'package:ikizini_bul/team/relay_team_state.dart';
+import 'package:ikizini_bul/team/relay_team_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

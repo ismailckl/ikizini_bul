@@ -1,7 +1,7 @@
-import 'package:bul_bitir/game/memory_card.dart';
-import 'package:bul_bitir/game/memory_game_config.dart';
-import 'package:bul_bitir/game/memory_game_controller.dart';
-import 'package:bul_bitir/game/race_controller.dart';
+import 'package:ikizini_bul/game/memory_card.dart';
+import 'package:ikizini_bul/game/memory_game_config.dart';
+import 'package:ikizini_bul/game/memory_game_controller.dart';
+import 'package:ikizini_bul/game/race_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

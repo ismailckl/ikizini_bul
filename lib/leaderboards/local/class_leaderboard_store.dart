@@ -31,7 +31,7 @@ class MemoryClassLeaderboardStore implements ClassLeaderboardStore {
 class SharedPreferencesClassLeaderboardStore implements ClassLeaderboardStore {
   SharedPreferencesClassLeaderboardStore({required this.prefs});
 
-  static const String _storageKey = 'bul_bitir.class_leaderboards';
+  static const String _storageKey = 'ikizini_bul.class_leaderboards';
 
   static Future<SharedPreferencesClassLeaderboardStore> create() async {
     final prefs = await SharedPreferences.getInstance();

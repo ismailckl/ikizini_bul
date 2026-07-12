@@ -42,7 +42,7 @@ class MemoryLocalLeaderboardStore implements LocalLeaderboardStore {
 class SharedPreferencesLocalLeaderboardStore implements LocalLeaderboardStore {
   SharedPreferencesLocalLeaderboardStore({required this.prefs});
 
-  static const String _keyPrefix = 'bul_bitir.leaderboards';
+  static const String _keyPrefix = 'ikizini_bul.leaderboards';
 
   static Future<SharedPreferencesLocalLeaderboardStore> create() async {
     final prefs = await SharedPreferences.getInstance();

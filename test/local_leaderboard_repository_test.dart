@@ -1,6 +1,6 @@
-import 'package:bul_bitir/leaderboards/leaderboard_entry.dart';
-import 'package:bul_bitir/leaderboards/local/local_leaderboard_repository.dart';
-import 'package:bul_bitir/leaderboards/local/local_leaderboard_store.dart';
+import 'package:ikizini_bul/leaderboards/leaderboard_entry.dart';
+import 'package:ikizini_bul/leaderboards/local/local_leaderboard_repository.dart';
+import 'package:ikizini_bul/leaderboards/local/local_leaderboard_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

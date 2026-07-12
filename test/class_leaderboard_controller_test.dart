@@ -1,7 +1,7 @@
-import 'package:bul_bitir/game/memory_game_config.dart';
-import 'package:bul_bitir/game/memory_game_controller.dart';
-import 'package:bul_bitir/leaderboards/local/class_leaderboard_controller.dart';
-import 'package:bul_bitir/leaderboards/local/class_leaderboard_store.dart';
+import 'package:ikizini_bul/game/memory_game_config.dart';
+import 'package:ikizini_bul/game/memory_game_controller.dart';
+import 'package:ikizini_bul/leaderboards/local/class_leaderboard_controller.dart';
+import 'package:ikizini_bul/leaderboards/local/class_leaderboard_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

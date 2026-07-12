@@ -1,17 +1,17 @@
-import 'package:bul_bitir/main.dart';
-import 'package:bul_bitir/game/memory_game_config.dart';
-import 'package:bul_bitir/game/memory_game_controller.dart';
+import 'package:ikizini_bul/main.dart';
+import 'package:ikizini_bul/game/memory_game_config.dart';
+import 'package:ikizini_bul/game/memory_game_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bul_bitir/leaderboards/local/class_leaderboard_store.dart';
-import 'package:bul_bitir/team/relay_team_state.dart';
-import 'package:bul_bitir/team/relay_team_store.dart';
+import 'package:ikizini_bul/leaderboards/local/class_leaderboard_store.dart';
+import 'package:ikizini_bul/team/relay_team_state.dart';
+import 'package:ikizini_bul/team/relay_team_store.dart';
 
 void main() {
   testWidgets('smart board race screen renders both sides', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('Bul Bitir'), findsWidgets);
+    expect(find.text('Ikizini Bul'), findsWidgets);
     expect(find.text('Takim A'), findsOneWidget);
     expect(find.text('Takim B'), findsOneWidget);
     expect(find.text('Sira: Ali'), findsOneWidget);

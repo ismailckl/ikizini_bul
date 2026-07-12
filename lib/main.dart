@@ -51,7 +51,7 @@ class BulBitirApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Bul Bitir',
+      title: 'Ikizini Bul',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xff0f766e),
@@ -169,7 +169,7 @@ class ModeSwitchBar extends StatelessWidget {
           const Icon(Icons.apps, color: Color(0xff415753)),
           const SizedBox(width: 12),
           const Text(
-            'Bul Bitir',
+            'Ikizini Bul',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
           ),
           const Spacer(),
@@ -1617,7 +1617,7 @@ class TeacherRaceBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Bul Bitir',
+                      'Ikizini Bul',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleLarge?.copyWith(

@@ -1,5 +1,5 @@
-import 'package:bul_bitir/leaderboards/local/class_leaderboard.dart';
-import 'package:bul_bitir/leaderboards/local/class_leaderboard_store.dart';
+import 'package:ikizini_bul/leaderboards/local/class_leaderboard.dart';
+import 'package:ikizini_bul/leaderboards/local/class_leaderboard_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

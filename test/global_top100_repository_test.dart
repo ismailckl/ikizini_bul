@@ -1,6 +1,6 @@
-import 'package:bul_bitir/leaderboards/global/global_top100_repository.dart';
-import 'package:bul_bitir/leaderboards/leaderboard_entry.dart';
-import 'package:bul_bitir/leaderboards/leaderboard_repository.dart';
+import 'package:ikizini_bul/leaderboards/global/global_top100_repository.dart';
+import 'package:ikizini_bul/leaderboards/leaderboard_entry.dart';
+import 'package:ikizini_bul/leaderboards/leaderboard_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

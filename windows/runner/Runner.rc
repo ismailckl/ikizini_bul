@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "bul_bitir" "\0"
+            VALUE "CompanyName", "ismailckl" "\0"
+            VALUE "FileDescription", "Ikizini Bul" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "bul_bitir" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "bul_bitir.exe" "\0"
-            VALUE "ProductName", "bul_bitir" "\0"
+            VALUE "InternalName", "ikizini_bul" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 ismailckl. All rights reserved." "\0"
+            VALUE "OriginalFilename", "ikizini_bul.exe" "\0"
+            VALUE "ProductName", "Ikizini Bul" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

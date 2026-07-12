@@ -37,7 +37,7 @@ class MemoryRelayTeamStore implements RelayTeamStore {
 class SharedPreferencesRelayTeamStore implements RelayTeamStore {
   SharedPreferencesRelayTeamStore({required this.prefs});
 
-  static const String _storageKey = 'bul_bitir.relay_teams';
+  static const String _storageKey = 'ikizini_bul.relay_teams';
 
   static Future<SharedPreferencesRelayTeamStore> create() async {
     final prefs = await SharedPreferences.getInstance();

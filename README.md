@@ -1,6 +1,6 @@
-# Bul Bitir
+# Ikizini Bul
 
-Bul Bitir, mobil ve akilli tahta icin tasarlanan rekabetci bir hafiza
+Ikizini Bul, mobil ve akilli tahta icin tasarlanan rekabetci bir hafiza
 eslestirme oyunudur. Uygulama tek oyun motorunu kullanarak iki deneyim sunar:
 mobil solo mod ve akilli tahta split-screen yaris modu. Akilli tahta yaris
 sonucu secili yerel sinif listesine, solo sonuc ise hem solo yerel listeye hem
