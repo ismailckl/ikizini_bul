@@ -493,13 +493,11 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
         playerName: 'Takım A',
         sideLabel: 'Sol Alan',
         config: config,
-        seed: 2026,
       ),
       right: MemoryGameController(
         playerName: 'Takım B',
         sideLabel: 'Sağ Alan',
         config: config,
-        seed: 2026,
       ),
     );
   }
@@ -918,7 +916,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
         contentSet: _soloContentSet,
         slotCount: _boardPreset.slotCount,
       ),
-      seed: 404,
     );
   }
 

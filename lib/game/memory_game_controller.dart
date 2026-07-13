@@ -24,6 +24,7 @@ class MemoryGameController extends ChangeNotifier {
   final String sideLabel;
   final MemoryGameConfig config;
   final int? seed;
+  final Random _random = Random();
   final Stopwatch _stopwatch = Stopwatch();
 
   Timer? _ticker;
@@ -264,7 +265,7 @@ class MemoryGameController extends ChangeNotifier {
         ),
       );
     }
-    final random = Random(seed);
+    final random = seed == null ? _random : Random(seed);
     deck.shuffle(random);
     return deck;
   }

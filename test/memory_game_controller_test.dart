@@ -177,4 +177,23 @@ void main() {
 
     controller.dispose();
   });
+
+  test('unseeded reset reshuffles the board', () {
+    final controller = MemoryGameController(
+      playerName: 'A',
+      sideLabel: 'random',
+      config: const MemoryGameConfig(pairCount: 8, columns: 4),
+    );
+
+    final firstOrder = controller.cards.map((card) => card.id).join(',');
+    final orders = <String>{firstOrder};
+    for (var i = 0; i < 4; i++) {
+      controller.reset();
+      orders.add(controller.cards.map((card) => card.id).join(','));
+    }
+
+    expect(orders.length, greaterThan(1));
+
+    controller.dispose();
+  });
 }
