@@ -142,4 +142,39 @@ void main() {
     numbers.dispose();
     shapes.dispose();
   });
+
+  test('slot count adds a bonus card for odd boards', () {
+    final controller = MemoryGameController(
+      playerName: 'A',
+      sideLabel: 'bonus',
+      config: const MemoryGameConfig(pairCount: 2, columns: 5, slotCount: 5),
+      seed: 14,
+    );
+
+    expect(controller.boardSlotCount, 5);
+    expect(controller.cards, hasLength(5));
+    expect(controller.cards.where((card) => card.isBonus), hasLength(1));
+
+    controller.start();
+    final bonus = controller.cards.singleWhere((card) => card.isBonus);
+    controller.revealCard(bonus.id);
+
+    expect(
+      controller.cards.singleWhere((card) => card.id == bonus.id).status,
+      MemoryCardStatus.matched,
+    );
+
+    for (final pairId in {
+      for (final card in controller.cards.where((card) => !card.isBonus))
+        card.pairId,
+    }) {
+      final pair = controller.cards.where((card) => card.pairId == pairId);
+      controller.revealCard(pair.first.id);
+      controller.revealCard(pair.last.id);
+    }
+
+    expect(controller.status, MemoryGameStatus.finished);
+
+    controller.dispose();
+  });
 }

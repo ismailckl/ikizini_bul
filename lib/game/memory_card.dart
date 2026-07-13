@@ -9,6 +9,7 @@ class MemoryCard {
     required this.label,
     this.visual = CardVisualKind.text,
     this.status = MemoryCardStatus.hidden,
+    this.isBonus = false,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class MemoryCard {
   final String label;
   final CardVisualKind visual;
   final MemoryCardStatus status;
+  final bool isBonus;
 
   bool get isFaceUp =>
       status == MemoryCardStatus.revealed || status == MemoryCardStatus.matched;
@@ -27,6 +29,7 @@ class MemoryCard {
       label: label,
       visual: visual,
       status: status ?? this.status,
+      isBonus: isBonus,
     );
   }
 }

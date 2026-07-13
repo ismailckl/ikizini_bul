@@ -88,6 +88,17 @@ void main() {
     expect(find.text('Puan'), findsOneWidget);
   });
 
+  testWidgets('mobile 5x5 selection opens 25 card slots', (tester) async {
+    await tester.pumpWidget(const BulBitirApp());
+
+    await tester.tap(find.text('5x5'));
+    await tester.enterText(find.byType(TextField).last, 'Ismail');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MemoryCardTile), findsNWidgets(25));
+  });
+
   testWidgets('teacher can edit relay team players', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
     await switchToSmartBoard(tester);
@@ -169,6 +180,46 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byIcon(Icons.question_mark), findsWidgets);
+
+    controller.dispose();
+  });
+
+  testWidgets('matched cards disappear from the board', (tester) async {
+    final controller = MemoryGameController(
+      playerName: 'Test',
+      sideLabel: 'Disappear',
+      config: const MemoryGameConfig(pairCount: 1, columns: 2),
+      seed: 21,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 220,
+            height: 120,
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (context, _) {
+                return MemoryCardGrid(
+                  controller: controller,
+                  accent: const Color(0xff0f766e),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.question_mark), findsNWidgets(2));
+
+    controller.start();
+    controller.revealCard(controller.cards.first.id);
+    controller.revealCard(controller.cards.last.id);
+    await tester.pump();
+
+    expect(find.byIcon(Icons.question_mark), findsNothing);
 
     controller.dispose();
   });

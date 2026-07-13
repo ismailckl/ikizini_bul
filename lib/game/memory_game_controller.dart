@@ -45,6 +45,7 @@ class MemoryGameController extends ChangeNotifier {
   int get matchedPairs => _matchedPairs;
   int get pairCount => config.pairCount;
   int get columns => config.columns;
+  int get boardSlotCount => config.boardSlotCount;
   int get turnVersion => _turnVersion;
   MemoryTurnResult? get lastTurnResult => _lastTurnResult;
   bool get isFinished => _status == MemoryGameStatus.finished;
@@ -110,6 +111,11 @@ class MemoryGameController extends ChangeNotifier {
       return;
     }
 
+    if (selected.isBonus) {
+      _clearBonusCard(selected.id);
+      return;
+    }
+
     _cards = [
       for (final card in _cards)
         if (card.id == cardId)
@@ -150,7 +156,7 @@ class MemoryGameController extends ChangeNotifier {
       _recordTurnResult(MemoryTurnResult.match);
       _clearOpenCards();
 
-      if (_matchedPairs == config.pairCount) {
+      if (_allCardsCleared) {
         _finish();
       } else {
         notifyListeners();
@@ -175,6 +181,31 @@ class MemoryGameController extends ChangeNotifier {
       notifyListeners();
     });
   }
+
+  void _clearBonusCard(String cardId) {
+    _moves++;
+    final openCardId = _firstOpenCardId;
+    _cards = [
+      for (final card in _cards)
+        if (card.id == cardId)
+          card.copyWith(status: MemoryCardStatus.matched)
+        else if (card.id == openCardId)
+          card.copyWith(status: MemoryCardStatus.hidden)
+        else
+          card,
+    ];
+    _recordTurnResult(MemoryTurnResult.match);
+    _clearOpenCards();
+
+    if (_allCardsCleared) {
+      _finish();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  bool get _allCardsCleared =>
+      _cards.every((card) => card.status == MemoryCardStatus.matched);
 
   MemoryCard? _cardById(String? cardId) {
     if (cardId == null) {
@@ -221,6 +252,17 @@ class MemoryGameController extends ChangeNotifier {
           ),
         );
       }
+    }
+    final bonusCardCount = config.boardSlotCount - config.cardCount;
+    for (var bonusIndex = 0; bonusIndex < bonusCardCount; bonusIndex++) {
+      deck.add(
+        MemoryCard(
+          id: 'bonus-$bonusIndex',
+          pairId: -bonusIndex - 1,
+          label: '★',
+          isBonus: true,
+        ),
+      );
     }
     final random = Random(seed);
     deck.shuffle(random);

@@ -76,16 +76,18 @@ class BoardPreset {
     required this.label,
     required this.pairCount,
     required this.columns,
+    required this.slotCount,
   });
 
   final String label;
   final int pairCount;
   final int columns;
+  final int slotCount;
 }
 
 const List<BoardPreset> boardPresets = [
-  BoardPreset(label: '4x4', pairCount: 8, columns: 4),
-  BoardPreset(label: '5x5', pairCount: 12, columns: 5),
+  BoardPreset(label: '4x4', pairCount: 8, columns: 4, slotCount: 16),
+  BoardPreset(label: '5x5', pairCount: 12, columns: 5, slotCount: 25),
 ];
 
 String formatGameDuration(Duration duration) {
@@ -914,6 +916,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
         pairCount: pairCount,
         columns: _boardPreset.columns,
         contentSet: _soloContentSet,
+        slotCount: _boardPreset.slotCount,
       ),
       seed: 404,
     );
@@ -3118,7 +3121,7 @@ class MemoryCardGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = controller.columns;
-        final rows = (controller.cards.length / columns).ceil();
+        final rows = (controller.boardSlotCount / columns).ceil();
         final tight = constraints.maxWidth < 420 || constraints.maxHeight < 420;
         final spacing = tight ? 8.0 : 14.0;
         final usableWidth = constraints.maxWidth - (spacing * (columns - 1));
@@ -3137,7 +3140,7 @@ class MemoryCardGrid extends StatelessWidget {
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              itemCount: controller.cards.length,
+              itemCount: controller.boardSlotCount,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columns,
                 crossAxisSpacing: spacing,
@@ -3180,12 +3183,15 @@ class MemoryCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMatched = card.status == MemoryCardStatus.matched;
+    if (isMatched) {
+      return const AnimatedOpacity(
+        opacity: 0,
+        duration: Duration(milliseconds: 180),
+        child: SizedBox.expand(),
+      );
+    }
     final isFaceUp = card.isFaceUp;
-    final borderColor = isMatched
-        ? const Color(0xff16a34a)
-        : isFaceUp
-        ? accent
-        : const Color(0xffbdd0cb);
+    final borderColor = isFaceUp ? accent : const Color(0xffbdd0cb);
 
     return Material(
       color: Colors.transparent,
