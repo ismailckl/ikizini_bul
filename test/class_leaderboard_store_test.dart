@@ -8,14 +8,14 @@ void main() {
     final store = MemoryClassLeaderboardStore();
 
     await store.writeLists(const [
-      ClassLeaderboard(id: '8-a-turnuva', name: '8-A Turnuvasi'),
+      ClassLeaderboard(id: '8-a-turnuva', name: '8-A Turnuvası'),
     ]);
 
     final restored = await store.readLists();
 
     expect(restored, hasLength(1));
     expect(restored.single.id, '8-a-turnuva');
-    expect(restored.single.name, '8-A Turnuvasi');
+    expect(restored.single.name, '8-A Turnuvası');
   });
 
   test('class leaderboard lists persist in shared preferences store', () async {

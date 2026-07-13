@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "ismailckl" "\0"
-            VALUE "FileDescription", "Ikizini Bul" "\0"
+            VALUE "FileDescription", "İkizini Bul" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "ikizini_bul" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 ismailckl. All rights reserved." "\0"
             VALUE "OriginalFilename", "ikizini_bul.exe" "\0"
-            VALUE "ProductName", "Ikizini Bul" "\0"
+            VALUE "ProductName", "İkizini Bul" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

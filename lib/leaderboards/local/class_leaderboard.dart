@@ -17,7 +17,7 @@ class ClassLeaderboard {
 }
 
 const List<ClassLeaderboard> defaultClassLeaderboards = [
-  ClassLeaderboard(id: '6-a-turnuva', name: '6-A Turnuvasi'),
+  ClassLeaderboard(id: '6-a-turnuva', name: '6-A Turnuvası'),
   ClassLeaderboard(id: '7-b-deneme', name: '7-B Deneme'),
-  ClassLeaderboard(id: 'ogretmen-modu', name: 'Ogretmen Modu'),
+  ClassLeaderboard(id: 'ogretmen-modu', name: 'Öğretmen Modu'),
 ];

@@ -49,7 +49,7 @@ class BulBitirApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ikizini Bul',
+      title: 'İkizini Bul',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xff0f766e),
@@ -151,41 +151,270 @@ class ModeSwitchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(
-        color: Color(0xffffffff),
-        border: Border(bottom: BorderSide(color: Color(0xffd9e2df))),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.apps, color: Color(0xff415753)),
-          const SizedBox(width: 12),
-          const Text(
-            'Ikizini Bul',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 430;
+        final modePicker = SegmentedButton<PlayMode>(
+          segments: [
+            const ButtonSegment(
+              value: PlayMode.solo,
+              icon: Icon(Icons.phone_android),
+              label: Text('Mobil'),
+            ),
+            ButtonSegment(
+              value: PlayMode.smartBoard,
+              icon: const Icon(Icons.dashboard),
+              label: Text(compact ? 'Tahta' : 'Akıllı Tahta'),
+            ),
+          ],
+          selected: {selectedMode},
+          onSelectionChanged: (selection) {
+            onModeChanged(selection.single);
+          },
+        );
+
+        if (compact) {
+          return Container(
+            height: 96,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xffffffff),
+              border: Border(bottom: BorderSide(color: Color(0xffd9e2df))),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    MemoryGameMark(size: 32),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'İkizini Bul',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _CompactModeButton(
+                          selected: selectedMode == PlayMode.solo,
+                          icon: Icons.phone_android,
+                          label: 'Mobil',
+                          onTap: () => onModeChanged(PlayMode.solo),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _CompactModeButton(
+                          selected: selectedMode == PlayMode.smartBoard,
+                          icon: Icons.dashboard,
+                          label: 'Tahta',
+                          onTap: () => onModeChanged(PlayMode.smartBoard),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Container(
+          height: 64,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: const BoxDecoration(
+            color: Color(0xffffffff),
+            border: Border(bottom: BorderSide(color: Color(0xffd9e2df))),
           ),
-          const Spacer(),
-          SegmentedButton<PlayMode>(
-            segments: const [
-              ButtonSegment(
-                value: PlayMode.solo,
-                icon: Icon(Icons.phone_android),
-                label: Text('Mobil'),
+          child: Row(
+            children: [
+              const MemoryGameMark(size: 38),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'İkizini Bul',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                ),
               ),
-              ButtonSegment(
-                value: PlayMode.smartBoard,
-                icon: Icon(Icons.dashboard),
-                label: Text('Akilli Tahta'),
+              const SizedBox(width: 12),
+              modePicker,
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CompactModeButton extends StatelessWidget {
+  const _CompactModeButton({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected ? Colors.white : const Color(0xff415753);
+    return Material(
+      color: selected ? const Color(0xff0f766e) : const Color(0xfff3f7f6),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: selected ? const Color(0xff0f766e) : const Color(0xffd5e1dd),
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          height: 40,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: foreground, size: 20),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
-            selected: {selectedMode},
-            onSelectionChanged: (selection) {
-              onModeChanged(selection.single);
-            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MemoryGameMark extends StatelessWidget {
+  const MemoryGameMark({
+    this.size = 88,
+    this.accent = const Color(0xff0f766e),
+    this.secondary = const Color(0xfff59e0b),
+    super.key,
+  });
+
+  final double size;
+  final Color accent;
+  final Color secondary;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardWidth = size * 0.44;
+    final cardHeight = size * 0.58;
+    final badgeSize = size * 0.28;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: size * 0.12,
+            top: size * 0.18,
+            child: Transform.rotate(
+              angle: -0.16,
+              child: _MemoryLogoCard(
+                width: cardWidth,
+                height: cardHeight,
+                accent: accent,
+                icon: Icons.question_mark,
+              ),
+            ),
+          ),
+          Positioned(
+            right: size * 0.12,
+            top: size * 0.18,
+            child: Transform.rotate(
+              angle: 0.16,
+              child: _MemoryLogoCard(
+                width: cardWidth,
+                height: cardHeight,
+                accent: secondary,
+                icon: Icons.extension,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: size * 0.06,
+            child: Container(
+              width: badgeSize,
+              height: badgeSize,
+              decoration: BoxDecoration(
+                color: const Color(0xff1f2937),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.bolt,
+                color: Colors.white,
+                size: badgeSize * 0.62,
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MemoryLogoCard extends StatelessWidget {
+  const _MemoryLogoCard({
+    required this.width,
+    required this.height,
+    required this.accent,
+    required this.icon,
+  });
+
+  final double width;
+  final double height;
+  final Color accent;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: accent, width: 2.5),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Icon(icon, color: accent, size: height * 0.42),
       ),
     );
   }
@@ -227,12 +456,12 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     _race = _createRace();
     _relay = _createRelay(
       leftTeam: RelayTeamState(
-        teamName: 'Takim A',
+        teamName: 'Takım A',
         players: ['Ali', 'Zeynep', 'Ece', 'Mert'],
       ),
       rightTeam: RelayTeamState(
-        teamName: 'Takim B',
-        players: ['Deniz', 'Ayse', 'Can', 'Elif'],
+        teamName: 'Takım B',
+        players: ['Deniz', 'Ayşe', 'Can', 'Elif'],
       ),
     );
     _race.addListener(_saveWinnerIfNeeded);
@@ -247,14 +476,14 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     );
     return RaceController(
       left: MemoryGameController(
-        playerName: 'Takim A',
+        playerName: 'Takım A',
         sideLabel: 'Sol Alan',
         config: config,
         seed: 2026,
       ),
       right: MemoryGameController(
-        playerName: 'Takim B',
-        sideLabel: 'Sag Alan',
+        playerName: 'Takım B',
+        sideLabel: 'Sağ Alan',
         config: config,
         seed: 2026,
       ),
@@ -485,7 +714,7 @@ class _TeamSetupDialogState extends State<TeamSetupDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Takimlari Duzenle'),
+      title: const Text('Takımları Düzenle'),
       content: SizedBox(
         width: 620,
         child: Row(
@@ -511,7 +740,7 @@ class _TeamSetupDialogState extends State<TeamSetupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Vazgec'),
+          child: const Text('Vazgeç'),
         ),
         FilledButton.icon(
           onPressed: _save,
@@ -590,7 +819,7 @@ class TeamPlayersField extends StatelessWidget {
           maxLines: 8,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
-            hintText: 'Her satira bir ogrenci',
+            hintText: 'Her satıra bir öğrenci',
           ),
         ),
       ],
@@ -710,7 +939,17 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
             );
 
             return Container(
-              color: const Color(0xffedf7f4),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xffe9f7f4),
+                    Color(0xfffff8e7),
+                    Color(0xffeef2ff),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               padding: const EdgeInsets.all(18),
               child: _hasSoloPlayer
                   ? Column(
@@ -789,8 +1028,15 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xffd5e1dd)),
+        border: Border.all(color: const Color(0xff9bd6c8), width: 1.5),
         borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x16000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -801,24 +1047,20 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const CircleAvatar(
-                    radius: 34,
-                    backgroundColor: Color(0xff0f766e),
-                    child: Icon(Icons.person, color: Colors.white, size: 34),
-                  ),
-                  const SizedBox(height: 18),
+                  const Center(child: MemoryGameMark(size: 112)),
+                  const SizedBox(height: 16),
                   const Text(
-                    'Mobil Oyun',
+                    'İkizini Bul',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xff0f766e),
-                      fontSize: 28,
+                      fontSize: 30,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Zamana karsi',
+                    'Adını yaz, kartları eşleştir.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xff536763),
@@ -832,7 +1074,7 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
                     textInputAction: TextInputAction.done,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Oyuncu adi',
+                      labelText: 'Oyuncu adı',
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                     onSubmitted: _submit,
@@ -840,8 +1082,8 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
                   const SizedBox(height: 12),
                   FilledButton.icon(
                     onPressed: () => _submit(_nameController.text),
-                    icon: const Icon(Icons.login),
-                    label: const Text('Oyuna Gir'),
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Başla'),
                   ),
                 ],
               ),
@@ -918,11 +1160,7 @@ class SoloTopBar extends StatelessWidget {
           final compact = constraints.maxWidth < 690;
           final identity = Row(
             children: [
-              const CircleAvatar(
-                radius: 28,
-                backgroundColor: Color(0xff0f766e),
-                child: Icon(Icons.phone_android, color: Colors.white),
-              ),
+              const MemoryGameMark(size: 58),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -940,7 +1178,7 @@ class SoloTopBar extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Mobil - Zamana karsi',
+                      'Kartları eşleştir',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -982,7 +1220,7 @@ class SoloTopBar extends StatelessWidget {
               ),
             ),
             Tooltip(
-              message: canResume ? 'Devam' : 'Baslat',
+              message: canResume ? 'Devam' : 'Başlat',
               child: IconButton.filled(
                 onPressed: canResume ? onResume : onStart,
                 icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
@@ -996,14 +1234,14 @@ class SoloTopBar extends StatelessWidget {
               ),
             ),
             Tooltip(
-              message: 'Sifirla',
+              message: 'Sıfırla',
               child: IconButton.outlined(
                 onPressed: onReset,
                 icon: const Icon(Icons.refresh),
               ),
             ),
             Tooltip(
-              message: 'Oyuncu Degistir',
+              message: 'Oyuncu Değiştir',
               child: IconButton.outlined(
                 onPressed: onChangePlayer,
                 icon: const Icon(Icons.person_outline),
@@ -1093,7 +1331,7 @@ class SoloLeaderboardPanel extends StatelessWidget {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Skorlarim',
+                  'Skorlarım',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
@@ -1104,8 +1342,8 @@ class SoloLeaderboardPanel extends StatelessWidget {
           const SizedBox(height: 12),
           Expanded(
             child: CompactLeaderboardColumn(
-              title: 'En iyi skorlar',
-              emptyLabel: 'Henuz skor yok',
+              title: 'En İyi Skorlar',
+              emptyLabel: 'Henüz skor yok',
               entries: localEntries,
             ),
           ),
@@ -1232,7 +1470,7 @@ class TournamentScoreStrip extends StatelessWidget {
             final listActions = ClassListActions(controller: controller);
             final scorePreview = topEntries.isEmpty
                 ? Text(
-                    'Henuz skor yok',
+                    'Henüz skor yok',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -1400,7 +1638,7 @@ class ClassListActions extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Vazgec'),
+              child: const Text('Vazgeç'),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -1436,22 +1674,22 @@ class _CreateClassListDialogState extends State<CreateClassListDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Liste Olustur'),
+      title: const Text('Liste Oluştur'),
       content: TextField(
         controller: _textController,
         autofocus: true,
         textInputAction: TextInputAction.done,
-        decoration: const InputDecoration(labelText: 'Liste adi'),
+        decoration: const InputDecoration(labelText: 'Liste adı'),
         onSubmitted: _submit,
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Vazgec'),
+          child: const Text('Vazgeç'),
         ),
         FilledButton(
           onPressed: () => _submit(_textController.text),
-          child: const Text('Olustur'),
+          child: const Text('Oluştur'),
         ),
       ],
     );
@@ -1552,7 +1790,7 @@ class LastSavedScore extends StatelessWidget {
           Flexible(
             child: Text(
               saved == null
-                  ? 'Kayit bekliyor'
+                  ? 'Kayıt bekliyor'
                   : '${saved.playerName} kaydedildi',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1588,9 +1826,9 @@ class TeacherRaceBar extends StatelessWidget {
         race.left.status == MemoryGameStatus.paused ||
         race.right.status == MemoryGameStatus.paused;
     final winnerLabel = switch (race.winner) {
-      RaceSide.left => 'Kazanan: Takim A',
-      RaceSide.right => 'Kazanan: Takim B',
-      null => '6-A Turnuvasi',
+      RaceSide.left => 'Kazanan: Takım A',
+      RaceSide.right => 'Kazanan: Takım B',
+      null => '6-A Turnuvası',
     };
 
     return LayoutBuilder(
@@ -1615,7 +1853,7 @@ class TeacherRaceBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Ikizini Bul',
+                      'İkizini Bul',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -1694,7 +1932,7 @@ class FullRaceActions extends StatelessWidget {
         FilledButton.icon(
           onPressed: canResume ? race.resumeBoth : race.startBoth,
           icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
-          label: Text(canResume ? 'Devam' : 'Baslat'),
+          label: Text(canResume ? 'Devam' : 'Başlat'),
         ),
         const SizedBox(width: 10),
         OutlinedButton.icon(
@@ -1706,13 +1944,13 @@ class FullRaceActions extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: onEditTeams,
           icon: const Icon(Icons.groups),
-          label: const Text('Takimlar'),
+          label: const Text('Takımlar'),
         ),
         const SizedBox(width: 10),
         OutlinedButton.icon(
           onPressed: onResetRace,
           icon: const Icon(Icons.refresh),
-          label: const Text('Sifirla'),
+          label: const Text('Sıfırla'),
         ),
       ],
     );
@@ -1747,7 +1985,7 @@ class CompactRaceActions extends StatelessWidget {
           onChanged: onContentSetChanged,
         ),
         Tooltip(
-          message: canResume ? 'Devam' : 'Baslat',
+          message: canResume ? 'Devam' : 'Başlat',
           child: IconButton.filled(
             onPressed: canResume ? race.resumeBoth : race.startBoth,
             icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
@@ -1763,7 +2001,7 @@ class CompactRaceActions extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Tooltip(
-          message: 'Sifirla',
+          message: 'Sıfırla',
           child: IconButton.outlined(
             onPressed: onResetRace,
             icon: const Icon(Icons.refresh),
@@ -1771,7 +2009,7 @@ class CompactRaceActions extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Tooltip(
-          message: 'Takimlar',
+          message: 'Takımlar',
           child: IconButton.outlined(
             onPressed: onEditTeams,
             icon: const Icon(Icons.groups),
@@ -1977,7 +2215,7 @@ class RelayStatusStrip extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Sira: ${team.activePlayer}',
+              'Sıra: ${team.activePlayer}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -1989,7 +2227,7 @@ class RelayStatusStrip extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'Yanlis: ${team.consecutiveMistakes}/2',
+            'Yanlış: ${team.consecutiveMistakes}/2',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(

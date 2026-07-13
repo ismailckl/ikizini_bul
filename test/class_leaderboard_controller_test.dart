@@ -10,7 +10,7 @@ void main() {
     await leaderboard.load();
 
     final game = MemoryGameController(
-      playerName: 'Takim A',
+      playerName: 'Takım A',
       sideLabel: 'left',
       config: const MemoryGameConfig(pairCount: 1, columns: 2),
       seed: 5,
@@ -22,7 +22,7 @@ void main() {
     await leaderboard.saveSmartBoardResult(game);
 
     expect(leaderboard.entries, hasLength(1));
-    expect(leaderboard.entries.single.playerName, 'Takim A');
+    expect(leaderboard.entries.single.playerName, 'Takım A');
     expect(leaderboard.entries.single.score, greaterThan(0));
 
     await leaderboard.selectList('7-b-deneme');
@@ -42,13 +42,13 @@ void main() {
     final firstController = ClassLeaderboardController(listStore: store);
     await firstController.load();
 
-    final created = await firstController.createList('8-A Turnuvasi');
+    final created = await firstController.createList('8-A Turnuvası');
 
     expect(created, isNotNull);
-    expect(firstController.selectedList.name, '8-A Turnuvasi');
+    expect(firstController.selectedList.name, '8-A Turnuvası');
     expect(
       firstController.lists.map((list) => list.name),
-      contains('8-A Turnuvasi'),
+      contains('8-A Turnuvası'),
     );
 
     final secondController = ClassLeaderboardController(listStore: store);
@@ -56,18 +56,18 @@ void main() {
 
     expect(
       secondController.lists.map((list) => list.name),
-      contains('8-A Turnuvasi'),
+      contains('8-A Turnuvası'),
     );
 
     await secondController.selectList(created!.id);
-    expect(secondController.selectedList.name, '8-A Turnuvasi');
+    expect(secondController.selectedList.name, '8-A Turnuvası');
 
     final deleted = await secondController.deleteList(created.id);
 
     expect(deleted, isTrue);
     expect(
       secondController.lists.map((list) => list.name),
-      isNot(contains('8-A Turnuvasi')),
+      isNot(contains('8-A Turnuvası')),
     );
     expect(secondController.selectedList.id, '6-a-turnuva');
 

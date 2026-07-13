@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('relay advances on a match and after two mistakes', () async {
     final left = MemoryGameController(
-      playerName: 'Takim A',
+      playerName: 'Takım A',
       sideLabel: 'left',
       config: const MemoryGameConfig(
         pairCount: 3,
@@ -17,7 +17,7 @@ void main() {
       seed: 12,
     );
     final right = MemoryGameController(
-      playerName: 'Takim B',
+      playerName: 'Takım B',
       sideLabel: 'right',
       config: const MemoryGameConfig(pairCount: 3, columns: 3),
       seed: 13,
@@ -74,13 +74,13 @@ void main() {
 
   test('relay can reconfigure teams and reset active players', () {
     final left = MemoryGameController(
-      playerName: 'Takim A',
+      playerName: 'Takım A',
       sideLabel: 'left',
       config: const MemoryGameConfig(pairCount: 1, columns: 2),
       seed: 1,
     );
     final right = MemoryGameController(
-      playerName: 'Takim B',
+      playerName: 'Takım B',
       sideLabel: 'right',
       config: const MemoryGameConfig(pairCount: 1, columns: 2),
       seed: 2,

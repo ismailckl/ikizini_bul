@@ -57,7 +57,7 @@ abstract final class CardContentSets {
 
   static const numbers = CardContentSet(
     id: 'numbers',
-    name: 'Sayilar',
+    name: 'Sayılar',
     items: [
       CardContentItem(label: '1'),
       CardContentItem(label: '2'),
@@ -76,15 +76,15 @@ abstract final class CardContentSets {
 
   static const shapes = CardContentSet(
     id: 'shapes',
-    name: 'Sekiller',
+    name: 'Şekiller',
     items: [
       CardContentItem(label: 'Daire', visual: CardVisualKind.circle),
-      CardContentItem(label: 'Ucgen', visual: CardVisualKind.triangle),
+      CardContentItem(label: 'Üçgen', visual: CardVisualKind.triangle),
       CardContentItem(label: 'Kare', visual: CardVisualKind.square),
-      CardContentItem(label: 'Yildiz', visual: CardVisualKind.star),
+      CardContentItem(label: 'Yıldız', visual: CardVisualKind.star),
       CardContentItem(label: 'Kalp', visual: CardVisualKind.heart),
       CardContentItem(label: 'Elmas', visual: CardVisualKind.diamond),
-      CardContentItem(label: 'Arti', visual: CardVisualKind.plus),
+      CardContentItem(label: 'Artı', visual: CardVisualKind.plus),
       CardContentItem(label: 'Oval', visual: CardVisualKind.oval),
     ],
   );

@@ -1,11 +1,11 @@
 {
-    "name": "Ikizini Bul",
-    "short_name": "Ikizini Bul",
+    "name": "İkizini Bul",
+    "short_name": "İkizini Bul",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0F766E",
     "theme_color": "#0F766E",
-    "description": "Mobil ve akilli tahta icin rekabetci hafiza eslestirme oyunu.",
+    "description": "Mobil ve akıllı tahta için rekabetçi hafıza eşleştirme oyunu.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

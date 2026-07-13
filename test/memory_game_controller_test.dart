@@ -132,7 +132,7 @@ void main() {
 
     expect(
       {for (final card in shapes.cards) card.label},
-      {'Daire', 'Ucgen', 'Kare'},
+      {'Daire', 'Üçgen', 'Kare'},
     );
     expect(
       shapes.cards.any((card) => card.visual != CardVisualKind.text),
