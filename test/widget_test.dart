@@ -3,23 +3,25 @@ import 'package:ikizini_bul/game/memory_game_config.dart';
 import 'package:ikizini_bul/game/memory_game_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ikizini_bul/leaderboards/local/class_leaderboard_store.dart';
 import 'package:ikizini_bul/team/relay_team_state.dart';
 import 'package:ikizini_bul/team/relay_team_store.dart';
 
 void main() {
   Future<void> switchToSmartBoard(WidgetTester tester) async {
-    await tester.tap(find.text('Akıllı Tahta').first);
+    await tester.tap(find.byTooltip('Akıllı Tahta'));
     await tester.pumpAndSettle();
   }
 
   testWidgets('app opens in mobile solo mode first', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('İkizini Bul'), findsWidgets);
+    expect(find.text('İKİZİNİ\nBUL'), findsOneWidget);
     expect(find.text('Oyuncu adı'), findsOneWidget);
     expect(find.text('Başla'), findsOneWidget);
-    expect(find.text('Skorlarım'), findsOneWidget);
+    expect(find.text('4x4'), findsOneWidget);
+    expect(find.text('5x5'), findsOneWidget);
+    expect(find.text('Kart Listesi'), findsOneWidget);
+    expect(find.text('Puan Tablosu'), findsOneWidget);
   });
 
   testWidgets('mobile shell fits narrow phone width', (tester) async {
@@ -28,14 +30,15 @@ void main() {
 
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('Tahta'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Kart Listesi'), findsOneWidget);
   });
 
   testWidgets('smart board race screen renders both sides', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
     await switchToSmartBoard(tester);
 
-    expect(find.text('İkizini Bul'), findsWidgets);
+    expect(find.text('Akıllı Tahta'), findsOneWidget);
     expect(find.text('Takım A'), findsOneWidget);
     expect(find.text('Takım B'), findsOneWidget);
     expect(find.text('Sıra: Ali'), findsOneWidget);
@@ -55,10 +58,13 @@ void main() {
     await tester.pumpWidget(const BulBitirApp());
     await switchToSmartBoard(tester);
 
-    await tester.tap(find.text('Harfler').first);
+    await tester.tap(find.byTooltip('Kart Seti'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Şekiller').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Kart Seti'));
     await tester.pumpAndSettle();
 
     expect(find.text('Şekiller'), findsWidgets);
@@ -69,24 +75,24 @@ void main() {
   ) async {
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('Adını yaz, kartları eşleştir.'), findsOneWidget);
     expect(find.text('Oyuncu adı'), findsOneWidget);
     expect(find.text('Başla'), findsOneWidget);
-    expect(find.text('Skorlarım'), findsOneWidget);
+    expect(find.text('Puan Tablosu'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).last, 'Ismail');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
     expect(find.text('Ismail'), findsOneWidget);
-    expect(find.text('Kartları eşleştir'), findsOneWidget);
+    expect(find.text('Süre'), findsOneWidget);
+    expect(find.text('Puan'), findsOneWidget);
   });
 
   testWidgets('teacher can edit relay team players', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
     await switchToSmartBoard(tester);
 
-    await tester.tap(find.byIcon(Icons.groups).first);
+    await tester.tap(find.byTooltip('Takımlar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Takımları Düzenle'), findsOneWidget);
@@ -116,26 +122,24 @@ void main() {
     expect(find.text('Sıra: Burak'), findsOneWidget);
   });
 
-  testWidgets('teacher can create a local class tournament list', (
-    tester,
-  ) async {
-    final classStore = MemoryClassLeaderboardStore();
-
-    await tester.pumpWidget(BulBitirApp(classLeaderboardStore: classStore));
-    await switchToSmartBoard(tester);
+  testWidgets('mobile can open score and card list screens', (tester) async {
+    await tester.pumpWidget(const BulBitirApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Liste Ekle'));
+    await tester.tap(find.text('Puan Tablosu'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).last, '8-A Turnuvası');
-    await tester.tap(find.text('Oluştur'));
+    expect(find.text('Henüz puan yok'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Geri'));
     await tester.pumpAndSettle();
 
-    expect(find.text('8-A Turnuvası'), findsOneWidget);
+    await tester.tap(find.text('Kart Listesi'));
+    await tester.pumpAndSettle();
 
-    final storedLists = await classStore.readLists();
-    expect(storedLists.map((list) => list.name), contains('8-A Turnuvası'));
+    expect(find.text('Harfler'), findsOneWidget);
+    expect(find.text('Sayılar'), findsOneWidget);
+    expect(find.text('Şekiller'), findsOneWidget);
   });
 
   testWidgets('memory card grid scales into compact bounds', (tester) async {

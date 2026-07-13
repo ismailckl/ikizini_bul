@@ -69,6 +69,25 @@ class BulBitirApp extends StatelessWidget {
 
 enum PlayMode { smartBoard, solo }
 
+enum SoloView { menu, game, scores, cards }
+
+class BoardPreset {
+  const BoardPreset({
+    required this.label,
+    required this.pairCount,
+    required this.columns,
+  });
+
+  final String label;
+  final int pairCount;
+  final int columns;
+}
+
+const List<BoardPreset> boardPresets = [
+  BoardPreset(label: '4x4', pairCount: 8, columns: 4),
+  BoardPreset(label: '5x5', pairCount: 12, columns: 5),
+];
+
 String formatGameDuration(Duration duration) {
   final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
   final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
@@ -104,33 +123,24 @@ class _GameModeShellState extends State<GameModeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final modeIndex = switch (_selectedMode) {
-      PlayMode.solo => 0,
-      PlayMode.smartBoard => 1,
-    };
-
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: IndexedStack(
+          index: _selectedMode == PlayMode.solo ? 0 : 1,
           children: [
-            ModeSwitchBar(
-              selectedMode: _selectedMode,
-              onModeChanged: (mode) {
-                setState(() => _selectedMode = mode);
+            SoloGameScreen(
+              localRepository: _localRepository,
+              onOpenSmartBoard: () {
+                setState(() => _selectedMode = PlayMode.smartBoard);
               },
             ),
-            Expanded(
-              child: IndexedStack(
-                index: modeIndex,
-                children: [
-                  SoloGameScreen(localRepository: _localRepository),
-                  SmartBoardRaceScreen(
-                    localRepository: _localRepository,
-                    relayTeamStore: widget.relayTeamStore,
-                    classLeaderboardStore: widget.classLeaderboardStore,
-                  ),
-                ],
-              ),
+            SmartBoardRaceScreen(
+              localRepository: _localRepository,
+              relayTeamStore: widget.relayTeamStore,
+              classLeaderboardStore: widget.classLeaderboardStore,
+              onBackToSolo: () {
+                setState(() => _selectedMode = PlayMode.solo);
+              },
             ),
           ],
         ),
@@ -423,12 +433,14 @@ class _MemoryLogoCard extends StatelessWidget {
 class SmartBoardRaceScreen extends StatefulWidget {
   const SmartBoardRaceScreen({
     required this.localRepository,
+    required this.onBackToSolo,
     this.relayTeamStore,
     this.classLeaderboardStore,
     super.key,
   });
 
   final LocalLeaderboardRepository localRepository;
+  final VoidCallback onBackToSolo;
   final RelayTeamStore? relayTeamStore;
   final ClassLeaderboardStore? classLeaderboardStore;
 
@@ -597,78 +609,90 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     return AnimatedBuilder(
       animation: Listenable.merge([_race, _relay]),
       builder: (context, _) {
-        return Column(
-          children: [
-            TeacherRaceBar(
-              race: _race,
-              selectedContentSet: _smartBoardContentSet,
-              onResetRace: _resetRace,
-              onEditTeams: _editTeams,
-              onContentSetChanged: _changeSmartBoardContentSet,
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xffe0f2fe), Color(0xfffff7ed)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            TournamentScoreStrip(controller: _classLeaderboard),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide =
-                      constraints.maxWidth >= 760 ||
-                      constraints.maxHeight < 620;
-                  if (isWide) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: GameSidePanel(
-                            controller: _race.left,
-                            accent: const Color(0xff0f766e),
-                            softAccent: const Color(0xffd9f4ef),
-                            winner: _race.winner == RaceSide.left,
-                            relayTeam: _relay.leftTeam,
-                            relayAccent: const Color(0xff0f766e),
-                          ),
-                        ),
-                        const TouchBuffer(axis: Axis.vertical),
-                        Expanded(
-                          child: GameSidePanel(
-                            controller: _race.right,
-                            accent: const Color(0xffb45309),
-                            softAccent: const Color(0xffffecd1),
-                            winner: _race.winner == RaceSide.right,
-                            relayTeam: _relay.rightTeam,
-                            relayAccent: const Color(0xffb45309),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return Column(
-                    children: [
-                      Expanded(
-                        child: GameSidePanel(
-                          controller: _race.left,
-                          accent: const Color(0xff0f766e),
-                          softAccent: const Color(0xffd9f4ef),
-                          winner: _race.winner == RaceSide.left,
-                          relayTeam: _relay.leftTeam,
-                          relayAccent: const Color(0xff0f766e),
-                        ),
-                      ),
-                      const TouchBuffer(axis: Axis.horizontal),
-                      Expanded(
-                        child: GameSidePanel(
-                          controller: _race.right,
-                          accent: const Color(0xffb45309),
-                          softAccent: const Color(0xffffecd1),
-                          winner: _race.winner == RaceSide.right,
-                          relayTeam: _relay.rightTeam,
-                          relayAccent: const Color(0xffb45309),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+          ),
+          child: Column(
+            children: [
+              SmartBoardHeader(
+                race: _race,
+                selectedContentSet: _smartBoardContentSet,
+                onResetRace: _resetRace,
+                onEditTeams: _editTeams,
+                onContentSetChanged: _changeSmartBoardContentSet,
+                onBack: widget.onBackToSolo,
               ),
-            ),
-          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide =
+                          constraints.maxWidth >= 760 ||
+                          constraints.maxHeight < 620;
+                      if (isWide) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: GameSidePanel(
+                                controller: _race.left,
+                                accent: const Color(0xff0f766e),
+                                softAccent: const Color(0xffccfbf1),
+                                winner: _race.winner == RaceSide.left,
+                                relayTeam: _relay.leftTeam,
+                                relayAccent: const Color(0xff0f766e),
+                              ),
+                            ),
+                            const TouchBuffer(axis: Axis.vertical),
+                            Expanded(
+                              child: GameSidePanel(
+                                controller: _race.right,
+                                accent: const Color(0xffd97706),
+                                softAccent: const Color(0xffffedd5),
+                                winner: _race.winner == RaceSide.right,
+                                relayTeam: _relay.rightTeam,
+                                relayAccent: const Color(0xffd97706),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: GameSidePanel(
+                              controller: _race.left,
+                              accent: const Color(0xff0f766e),
+                              softAccent: const Color(0xffccfbf1),
+                              winner: _race.winner == RaceSide.left,
+                              relayTeam: _relay.leftTeam,
+                              relayAccent: const Color(0xff0f766e),
+                            ),
+                          ),
+                          const TouchBuffer(axis: Axis.horizontal),
+                          Expanded(
+                            child: GameSidePanel(
+                              controller: _race.right,
+                              accent: const Color(0xffd97706),
+                              softAccent: const Color(0xffffedd5),
+                              winner: _race.winner == RaceSide.right,
+                              relayTeam: _relay.rightTeam,
+                              relayAccent: const Color(0xffd97706),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -828,9 +852,14 @@ class TeamPlayersField extends StatelessWidget {
 }
 
 class SoloGameScreen extends StatefulWidget {
-  const SoloGameScreen({required this.localRepository, super.key});
+  const SoloGameScreen({
+    required this.localRepository,
+    required this.onOpenSmartBoard,
+    super.key,
+  });
 
   final LocalLeaderboardRepository localRepository;
+  final VoidCallback onOpenSmartBoard;
 
   @override
   State<SoloGameScreen> createState() => _SoloGameScreenState();
@@ -840,8 +869,9 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   late MemoryGameController _game;
   late final SoloLeaderboardController _leaderboard;
   CardContentSet _soloContentSet = CardContentSets.letters;
+  BoardPreset _boardPreset = boardPresets.first;
+  SoloView _view = SoloView.menu;
   bool _savedCurrentRun = false;
-  bool _hasSoloPlayer = false;
 
   @override
   void initState() {
@@ -873,12 +903,16 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   }
 
   MemoryGameController _createSoloGame(String playerName) {
+    final pairCount = math.min(
+      _boardPreset.pairCount,
+      _soloContentSet.items.length,
+    );
     return MemoryGameController(
       playerName: playerName,
       sideLabel: 'Mobil',
       config: MemoryGameConfig(
-        pairCount: 6,
-        columns: 3,
+        pairCount: pairCount,
+        columns: _boardPreset.columns,
         contentSet: _soloContentSet,
       ),
       seed: 404,
@@ -889,14 +923,14 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     final playerName = rawName.trim().isEmpty ? 'Oyuncu' : rawName.trim();
     _replaceSoloGame(playerName);
     setState(() {
-      _hasSoloPlayer = true;
+      _view = SoloView.game;
     });
   }
 
-  void _changeSoloPlayer() {
+  void _goHome() {
     _resetSolo();
     setState(() {
-      _hasSoloPlayer = false;
+      _view = SoloView.menu;
     });
   }
 
@@ -908,6 +942,28 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     _soloContentSet = contentSet;
     _replaceSoloGame(playerName);
     setState(() {});
+  }
+
+  void _changeBoardPreset(BoardPreset preset) {
+    if (_boardPreset.label == preset.label) {
+      return;
+    }
+    final playerName = _game.playerName;
+    _boardPreset = preset;
+    _replaceSoloGame(playerName);
+    setState(() {});
+  }
+
+  void _openScores() {
+    setState(() => _view = SoloView.scores);
+  }
+
+  void _openCards() {
+    setState(() => _view = SoloView.cards);
+  }
+
+  void _openMenu() {
+    setState(() => _view = SoloView.menu);
   }
 
   void _replaceSoloGame(String playerName) {
@@ -932,12 +988,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
       builder: (context, _) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 860;
-            final board = SoloBoard(controller: _game);
-            final leaderboard = SoloLeaderboardPanel(
-              localController: _leaderboard,
-            );
-
             return Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -951,44 +1001,34 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                 ),
               ),
               padding: const EdgeInsets.all(18),
-              child: _hasSoloPlayer
-                  ? Column(
-                      children: [
-                        SoloTopBar(
-                          controller: _game,
-                          selectedContentSet: _soloContentSet,
-                          onStart: _game.start,
-                          onPause: _game.pause,
-                          onResume: _game.resume,
-                          onReset: _resetSolo,
-                          onChangePlayer: _changeSoloPlayer,
-                          onContentSetChanged: _changeSoloContentSet,
-                        ),
-                        const SizedBox(height: 14),
-                        Expanded(
-                          child: wide
-                              ? Row(
-                                  children: [
-                                    Expanded(flex: 3, child: board),
-                                    const SizedBox(width: 16),
-                                    SizedBox(width: 320, child: leaderboard),
-                                  ],
-                                )
-                              : Column(
-                                  children: [
-                                    Expanded(child: board),
-                                    const SizedBox(height: 14),
-                                    SizedBox(height: 168, child: leaderboard),
-                                  ],
-                                ),
-                        ),
-                      ],
-                    )
-                  : SoloNameEntry(
-                      leaderboard: leaderboard,
-                      wide: wide,
-                      onJoin: _joinSolo,
-                    ),
+              child: switch (_view) {
+                SoloView.menu => SoloNameEntry(
+                  selectedPreset: _boardPreset,
+                  selectedContentSet: _soloContentSet,
+                  onPresetChanged: _changeBoardPreset,
+                  onJoin: _joinSolo,
+                  onOpenCards: _openCards,
+                  onOpenScores: _openScores,
+                  onOpenSmartBoard: widget.onOpenSmartBoard,
+                ),
+                SoloView.game => SoloPlayScreen(
+                  controller: _game,
+                  onStart: _game.start,
+                  onPause: _game.pause,
+                  onResume: _game.resume,
+                  onReset: _resetSolo,
+                  onHome: _goHome,
+                ),
+                SoloView.scores => SoloScoresScreen(
+                  localController: _leaderboard,
+                  onBack: _openMenu,
+                ),
+                SoloView.cards => SoloCardsScreen(
+                  selectedContentSet: _soloContentSet,
+                  onChanged: _changeSoloContentSet,
+                  onBack: _openMenu,
+                ),
+              },
             );
           },
         );
@@ -999,15 +1039,23 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
 
 class SoloNameEntry extends StatefulWidget {
   const SoloNameEntry({
-    required this.leaderboard,
-    required this.wide,
+    required this.selectedPreset,
+    required this.selectedContentSet,
+    required this.onPresetChanged,
     required this.onJoin,
+    required this.onOpenCards,
+    required this.onOpenScores,
+    required this.onOpenSmartBoard,
     super.key,
   });
 
-  final Widget leaderboard;
-  final bool wide;
+  final BoardPreset selectedPreset;
+  final CardContentSet selectedContentSet;
+  final ValueChanged<BoardPreset> onPresetChanged;
   final ValueChanged<String> onJoin;
+  final VoidCallback onOpenCards;
+  final VoidCallback onOpenScores;
+  final VoidCallback onOpenSmartBoard;
 
   @override
   State<SoloNameEntry> createState() => _SoloNameEntryState();
@@ -1024,50 +1072,51 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
 
   @override
   Widget build(BuildContext context) {
-    final entryPanel = Container(
-      padding: const EdgeInsets.all(18),
+    return Container(
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xff9bd6c8), width: 1.5),
+        border: Border.all(color: const Color(0xfff0c453), width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x16000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
+            color: Color(0x1f000000),
+            blurRadius: 20,
+            offset: Offset(0, 12),
           ),
         ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final compact = constraints.maxWidth < 390;
           return SingleChildScrollView(
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Center(child: MemoryGameMark(size: 112)),
-                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton.filledTonal(
+                      tooltip: 'Akıllı Tahta',
+                      onPressed: widget.onOpenSmartBoard,
+                      icon: const Icon(Icons.dashboard_customize),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Center(child: MemoryGameMark(size: 108)),
+                  const SizedBox(height: 12),
                   const Text(
-                    'İkizini Bul',
+                    'İKİZİNİ\nBUL',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xff0f766e),
-                      fontSize: 30,
+                      color: Color(0xff1f2937),
+                      fontSize: 34,
+                      height: 0.92,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Adını yaz, kartları eşleştir.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xff536763),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 28),
                   TextField(
                     controller: _nameController,
                     autofocus: true,
@@ -1079,11 +1128,72 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
                     ),
                     onSubmitted: _submit,
                   ),
-                  const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: () => _submit(_nameController.text),
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Başla'),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 58,
+                    child: FilledButton.icon(
+                      onPressed: () => _submit(_nameController.text),
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text(
+                        'Başla',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  BoardPresetSelector(
+                    selectedPreset: widget.selectedPreset,
+                    onChanged: widget.onPresetChanged,
+                  ),
+                  const SizedBox(height: 18),
+                  if (compact)
+                    Column(
+                      children: [
+                        MenuFooterButton(
+                          icon: Icons.style,
+                          label: 'Kart Listesi',
+                          onPressed: widget.onOpenCards,
+                        ),
+                        const SizedBox(height: 10),
+                        MenuFooterButton(
+                          icon: Icons.leaderboard,
+                          label: 'Puan Tablosu',
+                          onPressed: widget.onOpenScores,
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: MenuFooterButton(
+                            icon: Icons.style,
+                            label: 'Kart Listesi',
+                            onPressed: widget.onOpenCards,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: MenuFooterButton(
+                            icon: Icons.leaderboard,
+                            label: 'Puan Tablosu',
+                            onPressed: widget.onOpenScores,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Text(
+                      widget.selectedContentSet.name,
+                      style: const TextStyle(
+                        color: Color(0xff64748b),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1091,24 +1201,6 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
           );
         },
       ),
-    );
-
-    if (widget.wide) {
-      return Row(
-        children: [
-          Expanded(flex: 3, child: entryPanel),
-          const SizedBox(width: 16),
-          SizedBox(width: 320, child: widget.leaderboard),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        Expanded(child: entryPanel),
-        const SizedBox(height: 14),
-        SizedBox(height: 168, child: widget.leaderboard),
-      ],
     );
   }
 
@@ -1118,6 +1210,491 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
       return;
     }
     widget.onJoin(name);
+  }
+}
+
+class BoardPresetSelector extends StatelessWidget {
+  const BoardPresetSelector({
+    required this.selectedPreset,
+    required this.onChanged,
+    super.key,
+  });
+
+  final BoardPreset selectedPreset;
+  final ValueChanged<BoardPreset> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final preset in boardPresets) ...[
+          Expanded(
+            child: ChoiceChip(
+              selected: selectedPreset.label == preset.label,
+              label: SizedBox(
+                height: 40,
+                child: Center(
+                  child: Text(
+                    preset.label,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              onSelected: (_) => onChanged(preset),
+            ),
+          ),
+          if (preset != boardPresets.last) const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class MenuFooterButton extends StatelessWidget {
+  const MenuFooterButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
+  }
+}
+
+class SoloPlayScreen extends StatelessWidget {
+  const SoloPlayScreen({
+    required this.controller,
+    required this.onStart,
+    required this.onPause,
+    required this.onResume,
+    required this.onReset,
+    required this.onHome,
+    super.key,
+  });
+
+  final MemoryGameController controller;
+  final VoidCallback onStart;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+  final VoidCallback onReset;
+  final VoidCallback onHome;
+
+  @override
+  Widget build(BuildContext context) {
+    final actionLabel = switch (controller.status) {
+      MemoryGameStatus.ready => 'Başla',
+      MemoryGameStatus.running => 'Duraklat',
+      MemoryGameStatus.paused => 'Devam',
+      MemoryGameStatus.finished => 'Tekrar',
+    };
+    final actionIcon = switch (controller.status) {
+      MemoryGameStatus.running => Icons.pause,
+      MemoryGameStatus.finished => Icons.refresh,
+      _ => Icons.play_arrow,
+    };
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            IconButton.filledTonal(
+              tooltip: 'Ana Menü',
+              onPressed: onHome,
+              icon: const Icon(Icons.home),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                controller.playerName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xff1f2937),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            IconButton.outlined(
+              tooltip: 'Sıfırla',
+              onPressed: onReset,
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Expanded(child: SoloBoard(controller: controller)),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: MiniMetric(
+                icon: Icons.timer,
+                label: 'Süre',
+                value: formatGameDuration(controller.elapsed),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: MiniMetric(
+                icon: Icons.emoji_events,
+                label: 'Puan',
+                value: '${controller.matchedPairs * 100}',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: 96,
+          height: 96,
+          child: FilledButton(
+            onPressed: () {
+              switch (controller.status) {
+                case MemoryGameStatus.ready:
+                  onStart();
+                case MemoryGameStatus.running:
+                  onPause();
+                case MemoryGameStatus.paused:
+                  onResume();
+                case MemoryGameStatus.finished:
+                  onReset();
+                  onStart();
+              }
+            },
+            style: FilledButton.styleFrom(shape: const CircleBorder()),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(actionIcon),
+                const SizedBox(height: 4),
+                FittedBox(
+                  child: Text(
+                    actionLabel,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class MiniMetric extends StatelessWidget {
+  const MiniMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xffd5e1dd)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xff0f766e)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xff64748b),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xff1f2937),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SoloScoresScreen extends StatelessWidget {
+  const SoloScoresScreen({
+    required this.localController,
+    required this.onBack,
+    super.key,
+  });
+
+  final SoloLeaderboardController localController;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = localController.entries;
+    return SimplePageShell(
+      title: 'Puan Tablosu',
+      icon: Icons.leaderboard,
+      onBack: onBack,
+      child: entries.isEmpty
+          ? const Center(
+              child: Text(
+                'Henüz puan yok',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            )
+          : ListView.separated(
+              itemCount: entries.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return ScoreListTile(rank: index + 1, entry: entry);
+              },
+            ),
+    );
+  }
+}
+
+class ScoreListTile extends StatelessWidget {
+  const ScoreListTile({required this.rank, required this.entry, super.key});
+
+  final int rank;
+  final LeaderboardEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xffd5e1dd)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$rank',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              entry.playerName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          Text(
+            '${entry.score}',
+            style: const TextStyle(
+              color: Color(0xff0f766e),
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SoloCardsScreen extends StatelessWidget {
+  const SoloCardsScreen({
+    required this.selectedContentSet,
+    required this.onChanged,
+    required this.onBack,
+    super.key,
+  });
+
+  final CardContentSet selectedContentSet;
+  final ValueChanged<CardContentSet> onChanged;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return SimplePageShell(
+      title: 'Kart Listesi',
+      icon: Icons.style,
+      onBack: onBack,
+      child: ListView.separated(
+        itemCount: CardContentSets.all.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final contentSet = CardContentSets.all[index];
+          return CardSetChoice(
+            contentSet: contentSet,
+            selected: contentSet.id == selectedContentSet.id,
+            onTap: () => onChanged(contentSet),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CardSetChoice extends StatelessWidget {
+  const CardSetChoice({
+    required this.contentSet,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  final CardContentSet contentSet;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final previews = contentSet.items.take(4).toList();
+    return Material(
+      color: selected ? const Color(0xffd9f4ef) : Colors.white,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: selected ? const Color(0xff0f766e) : const Color(0xffd5e1dd),
+          width: selected ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.check_circle : Icons.circle_outlined,
+                color: const Color(0xff0f766e),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  contentSet.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Wrap(
+                spacing: 6,
+                children: [
+                  for (final item in previews)
+                    Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: const Color(0xffd5e1dd)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        item.visual == CardVisualKind.text ? item.label : '●',
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SimplePageShell extends StatelessWidget {
+  const SimplePageShell({
+    required this.title,
+    required this.icon,
+    required this.onBack,
+    required this.child,
+    super.key,
+  });
+
+  final String title;
+  final IconData icon;
+  final VoidCallback onBack;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xfffffbeb),
+        border: Border.all(color: const Color(0xfff0c453), width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IconButton.filledTonal(
+                tooltip: 'Geri',
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back),
+              ),
+              const SizedBox(width: 10),
+              Icon(icon, color: const Color(0xff0f766e)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: child),
+        ],
+      ),
+    );
   }
 }
 
@@ -1803,6 +2380,91 @@ class LastSavedScore extends StatelessWidget {
   }
 }
 
+class SmartBoardHeader extends StatelessWidget {
+  const SmartBoardHeader({
+    required this.race,
+    required this.selectedContentSet,
+    required this.onResetRace,
+    required this.onEditTeams,
+    required this.onContentSetChanged,
+    required this.onBack,
+    super.key,
+  });
+
+  final RaceController race;
+  final CardContentSet selectedContentSet;
+  final VoidCallback onResetRace;
+  final VoidCallback onEditTeams;
+  final ValueChanged<CardContentSet> onContentSetChanged;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final canResume =
+        race.left.status == MemoryGameStatus.paused ||
+        race.right.status == MemoryGameStatus.paused;
+    final winnerLabel = switch (race.winner) {
+      RaceSide.left => 'Takım A kazandı',
+      RaceSide.right => 'Takım B kazandı',
+      null => 'Akıllı Tahta',
+    };
+
+    return Container(
+      height: 76,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xffd9e2df))),
+      ),
+      child: Row(
+        children: [
+          IconButton.filledTonal(
+            tooltip: 'Geri',
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              winnerLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            ),
+          ),
+          ContentSetMenuButton(
+            selectedContentSet: selectedContentSet,
+            onChanged: onContentSetChanged,
+          ),
+          IconButton.filled(
+            tooltip: canResume ? 'Devam' : 'Başlat',
+            onPressed: canResume ? race.resumeBoth : race.startBoth,
+            icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
+          ),
+          const SizedBox(width: 8),
+          IconButton.outlined(
+            tooltip: 'Duraklat',
+            onPressed: race.isRunning ? race.pauseBoth : null,
+            icon: const Icon(Icons.pause),
+          ),
+          const SizedBox(width: 8),
+          IconButton.outlined(
+            tooltip: 'Takımlar',
+            onPressed: onEditTeams,
+            icon: const Icon(Icons.groups),
+          ),
+          const SizedBox(width: 8),
+          IconButton.outlined(
+            tooltip: 'Sıfırla',
+            onPressed: onResetRace,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class TeacherRaceBar extends StatelessWidget {
   const TeacherRaceBar({
     required this.race,
@@ -2119,24 +2781,18 @@ class TouchBuffer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isVertical = axis == Axis.vertical;
     return SizedBox(
-      width: isVertical ? 56 : double.infinity,
-      height: isVertical ? double.infinity : 36,
+      width: isVertical ? 16 : double.infinity,
+      height: isVertical ? double.infinity : 16,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xffecf2f0),
+          color: Colors.transparent,
           border: Border.symmetric(
             vertical: isVertical
-                ? const BorderSide(color: Color(0xffcbd9d5), width: 1.5)
+                ? const BorderSide(color: Color(0x33000000), width: 1)
                 : BorderSide.none,
             horizontal: isVertical
                 ? BorderSide.none
-                : const BorderSide(color: Color(0xffcbd9d5), width: 1.5),
-          ),
-        ),
-        child: Center(
-          child: Icon(
-            isVertical ? Icons.drag_indicator : Icons.more_horiz,
-            color: const Color(0xff7b918c),
+                : const BorderSide(color: Color(0x33000000), width: 1),
           ),
         ),
       ),
@@ -2168,22 +2824,73 @@ class GameSidePanel extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         return Container(
-          color: softAccent.withAlpha(115),
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: softAccent,
+            border: Border.all(
+              color: winner ? accent : Colors.white,
+              width: winner ? 4 : 2,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Column(
             children: [
-              PlayerHeader(
-                controller: controller,
-                accent: accent,
-                winner: winner,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      controller.playerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  if (winner) Icon(Icons.emoji_events, color: accent, size: 32),
+                ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 10),
               if (relayTeam case final team?) ...[
-                RelayStatusStrip(team: team, accent: relayAccent ?? accent),
-                const SizedBox(height: 14),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Sıra: ${team.activePlayer}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: relayAccent ?? accent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
               ],
               Expanded(
                 child: MemoryCardGrid(controller: controller, accent: accent),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: MiniMetric(
+                      icon: Icons.timer,
+                      label: 'Süre',
+                      value: formatGameDuration(controller.elapsed),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: MiniMetric(
+                      icon: Icons.emoji_events,
+                      label: 'Puan',
+                      value: '${controller.matchedPairs * 100}',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
