@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'audio/game_audio_controller.dart';
 import 'game/card_content_set.dart';
 import 'game/memory_card.dart';
 import 'game/memory_game_config.dart';
@@ -455,8 +456,11 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
   late RelayRaceController _relay;
   late final ClassLeaderboardController _classLeaderboard;
   late final RelayTeamStore _relayTeamStore;
+  late final GameAudioController _audio;
   CardContentSet _smartBoardContentSet = CardContentSets.letters;
   int? _savedRaceNumber;
+  int _lastLeftAudioTurnVersion = 0;
+  int _lastRightAudioTurnVersion = 0;
 
   @override
   void initState() {
@@ -467,6 +471,7 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     );
     unawaited(_classLeaderboard.load());
     _relayTeamStore = widget.relayTeamStore ?? MemoryRelayTeamStore();
+    _audio = GameAudioController(backgroundVolume: 0.14, successVolume: 0.55);
     _race = _createRace();
     _relay = _createRelay(
       leftTeam: RelayTeamState(
@@ -479,6 +484,8 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
       ),
     );
     _race.addListener(_saveWinnerIfNeeded);
+    _race.addListener(_handleRaceAudio);
+    _syncRaceAudioVersions();
     unawaited(_loadStoredTeams());
   }
 
@@ -517,6 +524,9 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
   @override
   void dispose() {
     _race.removeListener(_saveWinnerIfNeeded);
+    _race.removeListener(_handleRaceAudio);
+    _audio.setPlaying(false);
+    unawaited(_audio.dispose());
     _relay.dispose();
     _race.dispose();
     _classLeaderboard.dispose();
@@ -536,10 +546,47 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     _classLeaderboard.saveSmartBoardResult(_race.controllerFor(winner));
   }
 
+  void _handleRaceAudio() {
+    _audio.setPlaying(_race.isRunning);
+    _playRaceSuccessIfNeeded(_race.left, isLeft: true);
+    _playRaceSuccessIfNeeded(_race.right, isLeft: false);
+  }
+
+  void _playRaceSuccessIfNeeded(
+    MemoryGameController controller, {
+    required bool isLeft,
+  }) {
+    final lastVersion = isLeft
+        ? _lastLeftAudioTurnVersion
+        : _lastRightAudioTurnVersion;
+    if (controller.turnVersion == lastVersion) {
+      return;
+    }
+    if (isLeft) {
+      _lastLeftAudioTurnVersion = controller.turnVersion;
+    } else {
+      _lastRightAudioTurnVersion = controller.turnVersion;
+    }
+    if (controller.lastTurnResult == MemoryTurnResult.match) {
+      _audio.playSuccess();
+    }
+  }
+
+  void _syncRaceAudioVersions() {
+    _lastLeftAudioTurnVersion = _race.left.turnVersion;
+    _lastRightAudioTurnVersion = _race.right.turnVersion;
+  }
+
   void _resetRace() {
     _savedRaceNumber = null;
     _race.resetRace();
     _relay.resetTeams();
+  }
+
+  void _backToSolo() {
+    _race.pauseBoth();
+    _audio.setPlaying(false);
+    widget.onBackToSolo();
   }
 
   void _changeSmartBoardContentSet(CardContentSet contentSet) {
@@ -558,6 +605,8 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
     final oldRace = _race;
     final oldRelay = _relay;
     oldRace.removeListener(_saveWinnerIfNeeded);
+    oldRace.removeListener(_handleRaceAudio);
+    _audio.setPlaying(false);
 
     setState(() {
       _savedRaceNumber = null;
@@ -565,6 +614,8 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
       _race = _createRace();
       _relay = _createRelay(leftTeam: leftTeam, rightTeam: rightTeam);
       _race.addListener(_saveWinnerIfNeeded);
+      _race.addListener(_handleRaceAudio);
+      _syncRaceAudioVersions();
     });
 
     oldRelay.dispose();
@@ -625,7 +676,7 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
                 onResetRace: _resetRace,
                 onEditTeams: _editTeams,
                 onContentSetChanged: _changeSmartBoardContentSet,
-                onBack: widget.onBackToSolo,
+                onBack: _backToSolo,
               ),
               Expanded(
                 child: Padding(
@@ -868,23 +919,30 @@ class SoloGameScreen extends StatefulWidget {
 class _SoloGameScreenState extends State<SoloGameScreen> {
   late MemoryGameController _game;
   late final SoloLeaderboardController _leaderboard;
+  late final GameAudioController _audio;
   CardContentSet _soloContentSet = CardContentSets.letters;
   BoardPreset _boardPreset = boardPresets.first;
   SoloView _view = SoloView.menu;
   bool _savedCurrentRun = false;
+  int _lastSoloAudioTurnVersion = 0;
 
   @override
   void initState() {
     super.initState();
     _leaderboard = SoloLeaderboardController(repository: widget.localRepository)
       ..load();
+    _audio = GameAudioController();
     _game = _createSoloGame('Oyuncu');
     _game.addListener(_saveFinishedRun);
+    _game.addListener(_handleSoloAudio);
   }
 
   @override
   void dispose() {
     _game.removeListener(_saveFinishedRun);
+    _game.removeListener(_handleSoloAudio);
+    _audio.setPlaying(false);
+    unawaited(_audio.dispose());
     _game.dispose();
     _leaderboard.dispose();
     super.dispose();
@@ -896,6 +954,20 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     }
     _savedCurrentRun = true;
     unawaited(_saveFinishedRunResults());
+  }
+
+  void _handleSoloAudio() {
+    final running =
+        _view == SoloView.game && _game.status == MemoryGameStatus.running;
+    _audio.setPlaying(running);
+
+    if (_game.turnVersion == _lastSoloAudioTurnVersion) {
+      return;
+    }
+    _lastSoloAudioTurnVersion = _game.turnVersion;
+    if (_game.lastTurnResult == MemoryTurnResult.match) {
+      _audio.playSuccess();
+    }
   }
 
   Future<void> _saveFinishedRunResults() async {
@@ -968,9 +1040,13 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
 
   void _replaceSoloGame(String playerName) {
     _game.removeListener(_saveFinishedRun);
+    _game.removeListener(_handleSoloAudio);
+    _audio.setPlaying(false);
     _game.dispose();
     _game = _createSoloGame(playerName);
     _game.addListener(_saveFinishedRun);
+    _game.addListener(_handleSoloAudio);
+    _lastSoloAudioTurnVersion = _game.turnVersion;
     _savedCurrentRun = false;
     _leaderboard.clearLastSaved();
   }
