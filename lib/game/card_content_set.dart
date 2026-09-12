@@ -89,7 +89,26 @@ abstract final class CardContentSets {
     ],
   );
 
-  static const all = [letters, numbers, shapes];
+  static const fruits = CardContentSet(
+    id: 'fruits',
+    name: 'Meyveler',
+    items: [
+      CardContentItem(label: '🍎'),
+      CardContentItem(label: '🍐'),
+      CardContentItem(label: '🍌'),
+      CardContentItem(label: '🍓'),
+      CardContentItem(label: '🍒'),
+      CardContentItem(label: '🍇'),
+      CardContentItem(label: '🍊'),
+      CardContentItem(label: '🍉'),
+      CardContentItem(label: '🍍'),
+      CardContentItem(label: '🍋'),
+      CardContentItem(label: '🍑'),
+      CardContentItem(label: '🥝'),
+    ],
+  );
+
+  static const all = [letters, numbers, shapes, fruits];
 
   static CardContentSet byId(String id) {
     return all.firstWhere((set) => set.id == id, orElse: () => letters);

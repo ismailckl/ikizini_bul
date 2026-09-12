@@ -143,6 +143,32 @@ void main() {
     shapes.dispose();
   });
 
+  test('fruit content set provides twelve matching pairs', () {
+    final fruits = MemoryGameController(
+      playerName: 'Meyve Oyuncusu',
+      sideLabel: 'Meyveler',
+      config: const MemoryGameConfig(
+        pairCount: 12,
+        columns: 5,
+        contentSet: CardContentSets.fruits,
+        slotCount: 25,
+      ),
+      seed: 8,
+    );
+
+    expect(fruits.cards, hasLength(25));
+    expect(fruits.cards.where((card) => !card.isBonus), hasLength(24));
+    expect(
+      fruits.cards
+          .where((card) => !card.isBonus)
+          .map((card) => card.label)
+          .toSet(),
+      hasLength(12),
+    );
+
+    fruits.dispose();
+  });
+
   test('slot count adds a bonus card for odd boards', () {
     final controller = MemoryGameController(
       playerName: 'A',
