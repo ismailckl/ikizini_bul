@@ -130,12 +130,9 @@ void main() {
       seed: 4,
     );
 
+    expect({for (final card in shapes.cards) card.label}, {'🔴', '🔺', '🟦'});
     expect(
-      {for (final card in shapes.cards) card.label},
-      {'Daire', 'Üçgen', 'Kare'},
-    );
-    expect(
-      shapes.cards.any((card) => card.visual != CardVisualKind.text),
+      shapes.cards.every((card) => card.visual == CardVisualKind.text),
       isTrue,
     );
 
@@ -167,6 +164,32 @@ void main() {
     );
 
     fruits.dispose();
+  });
+
+  test('vehicle content set provides twelve matching pairs', () {
+    final vehicles = MemoryGameController(
+      playerName: 'Araç Oyuncusu',
+      sideLabel: 'Araçlar',
+      config: const MemoryGameConfig(
+        pairCount: 12,
+        columns: 5,
+        contentSet: CardContentSets.vehicles,
+        slotCount: 25,
+      ),
+      seed: 9,
+    );
+
+    expect(vehicles.cards, hasLength(25));
+    expect(vehicles.cards.where((card) => !card.isBonus), hasLength(24));
+    expect(
+      vehicles.cards
+          .where((card) => !card.isBonus)
+          .map((card) => card.label)
+          .toSet(),
+      hasLength(12),
+    );
+
+    vehicles.dispose();
   });
 
   test('slot count adds a bonus card for odd boards', () {

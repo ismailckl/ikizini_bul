@@ -78,14 +78,18 @@ abstract final class CardContentSets {
     id: 'shapes',
     name: 'Şekiller',
     items: [
-      CardContentItem(label: 'Daire', visual: CardVisualKind.circle),
-      CardContentItem(label: 'Üçgen', visual: CardVisualKind.triangle),
-      CardContentItem(label: 'Kare', visual: CardVisualKind.square),
-      CardContentItem(label: 'Yıldız', visual: CardVisualKind.star),
-      CardContentItem(label: 'Kalp', visual: CardVisualKind.heart),
-      CardContentItem(label: 'Elmas', visual: CardVisualKind.diamond),
-      CardContentItem(label: 'Artı', visual: CardVisualKind.plus),
-      CardContentItem(label: 'Oval', visual: CardVisualKind.oval),
+      CardContentItem(label: '🔴'),
+      CardContentItem(label: '🔺'),
+      CardContentItem(label: '🟦'),
+      CardContentItem(label: '⭐'),
+      CardContentItem(label: '❤️'),
+      CardContentItem(label: '🔶'),
+      CardContentItem(label: '➕'),
+      CardContentItem(label: '🟣'),
+      CardContentItem(label: '🌙'),
+      CardContentItem(label: '☀️'),
+      CardContentItem(label: '☁️'),
+      CardContentItem(label: '⚡'),
     ],
   );
 
@@ -108,7 +112,26 @@ abstract final class CardContentSets {
     ],
   );
 
-  static const all = [letters, numbers, shapes, fruits];
+  static const vehicles = CardContentSet(
+    id: 'vehicles',
+    name: 'Araçlar',
+    items: [
+      CardContentItem(label: '🚗'),
+      CardContentItem(label: '🚌'),
+      CardContentItem(label: '🚂'),
+      CardContentItem(label: '🚢'),
+      CardContentItem(label: '✈️'),
+      CardContentItem(label: '🚁'),
+      CardContentItem(label: '🚜'),
+      CardContentItem(label: '🚒'),
+      CardContentItem(label: '🚑'),
+      CardContentItem(label: '🚓'),
+      CardContentItem(label: '🏍️'),
+      CardContentItem(label: '🚲'),
+    ],
+  );
+
+  static const all = [letters, numbers, shapes, fruits, vehicles];
 
   static CardContentSet byId(String id) {
     return all.firstWhere((set) => set.id == id, orElse: () => letters);

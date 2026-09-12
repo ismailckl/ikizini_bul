@@ -155,6 +155,7 @@ void main() {
     expect(find.text('Sayılar'), findsOneWidget);
     expect(find.text('Şekiller'), findsOneWidget);
     expect(find.text('Meyveler'), findsOneWidget);
+    expect(find.text('Araçlar'), findsOneWidget);
   });
 
   testWidgets('mobile score can be deleted from the score table', (
