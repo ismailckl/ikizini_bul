@@ -1663,18 +1663,55 @@ class SoloScoresScreen extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final entry = entries[index];
-                return ScoreListTile(rank: index + 1, entry: entry);
+                return ScoreListTile(
+                  rank: index + 1,
+                  entry: entry,
+                  onDelete: () => _confirmDelete(context, entry),
+                );
               },
             ),
     );
   }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    LeaderboardEntry entry,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Puanı Sil'),
+        content: Text('${entry.playerName} adlı oyuncunun puanı silinsin mi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: GameColors.coral),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) {
+      await localController.deleteEntry(entry);
+    }
+  }
 }
 
 class ScoreListTile extends StatelessWidget {
-  const ScoreListTile({required this.rank, required this.entry, super.key});
+  const ScoreListTile({
+    required this.rank,
+    required this.entry,
+    required this.onDelete,
+    super.key,
+  });
 
   final int rank;
   final LeaderboardEntry entry;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -1706,6 +1743,13 @@ class ScoreListTile extends StatelessWidget {
               color: Color(0xff0f766e),
               fontWeight: FontWeight.w900,
             ),
+          ),
+          const SizedBox(width: 6),
+          IconButton(
+            tooltip: 'Puanı Sil',
+            onPressed: onDelete,
+            color: GameColors.coral,
+            icon: const Icon(Icons.delete_outline_rounded),
           ),
         ],
       ),
@@ -2585,7 +2629,7 @@ class SmartBoardHeader extends StatelessWidget {
     final winnerLabel = switch (race.winner) {
       RaceSide.left => 'Takım A kazandı',
       RaceSide.right => 'Takım B kazandı',
-      null => 'Akıllı Tahta',
+      null => null,
     };
 
     return Container(
@@ -2603,14 +2647,19 @@ class SmartBoardHeader extends StatelessWidget {
             icon: const Icon(Icons.arrow_back),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              winnerLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          if (winnerLabel != null)
+            Expanded(
+              child: Text(
+                winnerLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
-          ),
+          if (winnerLabel == null) const Spacer(),
           ContentSetMenuButton(
             selectedContentSet: selectedContentSet,
             onChanged: onContentSetChanged,
@@ -2618,7 +2667,7 @@ class SmartBoardHeader extends StatelessWidget {
           IconButton.filled(
             tooltip: canResume ? 'Devam' : 'Başlat',
             onPressed: canResume ? race.resumeBoth : race.startBoth,
-            icon: Icon(canResume ? Icons.play_arrow : Icons.flag),
+            icon: const Icon(Icons.play_arrow_rounded),
           ),
           const SizedBox(width: 8),
           IconButton.outlined(

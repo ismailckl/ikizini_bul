@@ -52,6 +52,18 @@ class SoloLeaderboardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> deleteEntry(LeaderboardEntry entry) async {
+    final deleted = await _repository.deleteEntry(entry, listId: soloListId);
+    if (!deleted) {
+      return false;
+    }
+    if (_lastSavedEntry?.createdAt == entry.createdAt) {
+      _lastSavedEntry = null;
+    }
+    await _refresh();
+    return true;
+  }
+
   Future<void> _refresh() async {
     _entries = await _repository.top(
       mode: LeaderboardMode.solo,

@@ -137,6 +137,21 @@ class ClassLeaderboardController extends ChangeNotifier {
     return result;
   }
 
+  Future<bool> deleteEntry(LeaderboardEntry entry) async {
+    final deleted = await _repository.deleteEntry(
+      entry,
+      listId: _selectedListId,
+    );
+    if (!deleted) {
+      return false;
+    }
+    if (_lastSavedEntry?.createdAt == entry.createdAt) {
+      _lastSavedEntry = null;
+    }
+    await _refresh();
+    return true;
+  }
+
   Future<void> _refresh() async {
     _ensureSelectedList();
     _entries = await _repository.top(

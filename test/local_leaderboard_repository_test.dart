@@ -42,6 +42,21 @@ void main() {
     expect(restored.createdAt, original.createdAt);
   });
 
+  test('local repository permanently deletes one score entry', () async {
+    final store = MemoryLocalLeaderboardStore();
+    final repository = LocalLeaderboardRepository(store: store);
+    final entry = _entry(playerName: 'Ece', score: 5100);
+    await repository.submit(entry, listId: '6-a-turnuva');
+
+    expect(await repository.deleteEntry(entry, listId: '6-a-turnuva'), isTrue);
+
+    final entries = await repository.top(
+      mode: LeaderboardMode.smartBoardDuel,
+      listId: '6-a-turnuva',
+    );
+    expect(entries, isEmpty);
+  });
+
   test(
     'shared preferences store persists encoded leaderboard entries',
     () async {

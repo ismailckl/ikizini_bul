@@ -36,6 +36,20 @@ class LocalLeaderboardRepository implements LeaderboardRepository {
     );
   }
 
+  Future<bool> deleteEntry(LeaderboardEntry entry, {String? listId}) async {
+    final key = _key(entry.mode, listId);
+    final entries = await _store.readEntries(key);
+    final index = entries.indexWhere(
+      (candidate) => _sameEntry(candidate, entry),
+    );
+    if (index == -1) {
+      return false;
+    }
+    entries.removeAt(index);
+    await _store.writeEntries(key, entries);
+    return true;
+  }
+
   String _key(LeaderboardMode mode, String? listId) {
     return '${mode.name}:${listId ?? 'default'}';
   }
@@ -50,5 +64,15 @@ class LocalLeaderboardRepository implements LeaderboardRepository {
       return timeCompare;
     }
     return a.moves.compareTo(b.moves);
+  }
+
+  bool _sameEntry(LeaderboardEntry a, LeaderboardEntry b) {
+    return a.playerName == b.playerName &&
+        a.teamName == b.teamName &&
+        a.score == b.score &&
+        a.completionTime == b.completionTime &&
+        a.moves == b.moves &&
+        a.mode == b.mode &&
+        a.createdAt == b.createdAt;
   }
 }

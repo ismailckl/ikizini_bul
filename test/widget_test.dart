@@ -1,6 +1,9 @@
 import 'package:ikizini_bul/main.dart';
 import 'package:ikizini_bul/game/memory_game_config.dart';
 import 'package:ikizini_bul/game/memory_game_controller.dart';
+import 'package:ikizini_bul/leaderboards/leaderboard_entry.dart';
+import 'package:ikizini_bul/leaderboards/local/local_leaderboard_repository.dart';
+import 'package:ikizini_bul/leaderboards/local/local_leaderboard_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ikizini_bul/team/relay_team_state.dart';
@@ -38,14 +41,14 @@ void main() {
     await tester.pumpWidget(const BulBitirApp());
     await switchToSmartBoard(tester);
 
-    expect(find.text('Akıllı Tahta'), findsOneWidget);
+    expect(find.text('Akıllı Tahta'), findsNothing);
     expect(find.text('Takım A'), findsOneWidget);
     expect(find.text('Takım B'), findsOneWidget);
     expect(find.text('Sıra: Ali'), findsOneWidget);
     expect(find.text('Sıra: Deniz'), findsOneWidget);
     expect(find.byIcon(Icons.question_mark), findsWidgets);
 
-    await tester.tap(find.byIcon(Icons.flag));
+    await tester.tap(find.byTooltip('Başlat'));
     await tester.pump();
 
     expect(find.byIcon(Icons.pause), findsOneWidget);
@@ -151,6 +154,38 @@ void main() {
     expect(find.text('Harfler'), findsOneWidget);
     expect(find.text('Sayılar'), findsOneWidget);
     expect(find.text('Şekiller'), findsOneWidget);
+  });
+
+  testWidgets('mobile score can be deleted from the score table', (
+    tester,
+  ) async {
+    final store = MemoryLocalLeaderboardStore();
+    final repository = LocalLeaderboardRepository(store: store);
+    await repository.submit(
+      LeaderboardEntry(
+        playerName: 'Ece',
+        score: 4200,
+        completionTime: const Duration(seconds: 40),
+        moves: 12,
+        mode: LeaderboardMode.solo,
+        createdAt: DateTime(2026, 9, 12),
+      ),
+      listId: 'solo-best-times',
+    );
+
+    await tester.pumpWidget(BulBitirApp(localStore: store));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Puanlar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ece'), findsOneWidget);
+    await tester.tap(find.byTooltip('Puanı Sil'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ece'), findsNothing);
+    expect(find.text('Henüz puan yok'), findsOneWidget);
   });
 
   testWidgets('memory card grid scales into compact bounds', (tester) async {
