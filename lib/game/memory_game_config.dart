@@ -4,7 +4,7 @@ class MemoryGameConfig {
   const MemoryGameConfig({
     this.pairCount = 8,
     this.columns = 4,
-    this.contentSet = CardContentSets.letters,
+    this.contentSet = CardContentSets.fruits,
     this.mismatchPeek = const Duration(milliseconds: 750),
     this.slotCount,
   }) : assert(pairCount > 0),

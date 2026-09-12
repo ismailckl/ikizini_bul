@@ -151,11 +151,11 @@ void main() {
     await tester.tap(find.text('Kartlar'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Harfler'), findsOneWidget);
-    expect(find.text('Sayılar'), findsOneWidget);
     expect(find.text('Şekiller'), findsOneWidget);
     expect(find.text('Meyveler'), findsOneWidget);
     expect(find.text('Araçlar'), findsOneWidget);
+    expect(find.text('Harfler'), findsNothing);
+    expect(find.text('Sayılar'), findsNothing);
   });
 
   testWidgets('mobile score can be deleted from the score table', (

@@ -338,108 +338,20 @@ class _CompactModeButton extends StatelessWidget {
 }
 
 class MemoryGameMark extends StatelessWidget {
-  const MemoryGameMark({
-    this.size = 88,
-    this.accent = const Color(0xff0f766e),
-    this.secondary = const Color(0xfff59e0b),
-    super.key,
-  });
+  const MemoryGameMark({this.size = 88, super.key});
 
   final double size;
-  final Color accent;
-  final Color secondary;
 
   @override
   Widget build(BuildContext context) {
-    final cardWidth = size * 0.44;
-    final cardHeight = size * 0.58;
-    final badgeSize = size * 0.28;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: size * 0.12,
-            top: size * 0.18,
-            child: Transform.rotate(
-              angle: -0.16,
-              child: _MemoryLogoCard(
-                width: cardWidth,
-                height: cardHeight,
-                accent: accent,
-                icon: Icons.question_mark,
-              ),
-            ),
-          ),
-          Positioned(
-            right: size * 0.12,
-            top: size * 0.18,
-            child: Transform.rotate(
-              angle: 0.16,
-              child: _MemoryLogoCard(
-                width: cardWidth,
-                height: cardHeight,
-                accent: secondary,
-                icon: Icons.extension,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: size * 0.06,
-            child: Container(
-              width: badgeSize,
-              height: badgeSize,
-              decoration: BoxDecoration(
-                color: const Color(0xff1f2937),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.bolt,
-                color: Colors.white,
-                size: badgeSize * 0.62,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MemoryLogoCard extends StatelessWidget {
-  const _MemoryLogoCard({
-    required this.width,
-    required this.height,
-    required this.accent,
-    required this.icon,
-  });
-
-  final double width;
-  final double height;
-  final Color accent;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: accent, width: 2.5),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Icon(icon, color: accent, size: height * 0.42),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.2),
+      child: Image.asset(
+        'assets/images/app_logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.high,
       ),
     );
   }
@@ -469,7 +381,7 @@ class _SmartBoardRaceScreenState extends State<SmartBoardRaceScreen> {
   late final ClassLeaderboardController _classLeaderboard;
   late final RelayTeamStore _relayTeamStore;
   late final GameAudioController _audio;
-  CardContentSet _smartBoardContentSet = CardContentSets.letters;
+  CardContentSet _smartBoardContentSet = CardContentSets.fruits;
   int? _savedRaceNumber;
   int _lastLeftAudioTurnVersion = 0;
   int _lastRightAudioTurnVersion = 0;
@@ -932,7 +844,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   late MemoryGameController _game;
   late final SoloLeaderboardController _leaderboard;
   late final GameAudioController _audio;
-  CardContentSet _soloContentSet = CardContentSets.letters;
+  CardContentSet _soloContentSet = CardContentSets.fruits;
   BoardPreset _boardPreset = boardPresets.first;
   SoloView _view = SoloView.menu;
   bool _savedCurrentRun = false;

@@ -101,24 +101,7 @@ void main() {
     race.dispose();
   });
 
-  test('selected content set builds the matching deck labels and visuals', () {
-    final numbers = MemoryGameController(
-      playerName: 'A',
-      sideLabel: 'numbers',
-      config: const MemoryGameConfig(
-        pairCount: 3,
-        columns: 3,
-        contentSet: CardContentSets.numbers,
-      ),
-      seed: 3,
-    );
-
-    expect({for (final card in numbers.cards) card.label}, {'1', '2', '3'});
-    expect(
-      numbers.cards.every((card) => card.visual == CardVisualKind.text),
-      isTrue,
-    );
-
+  test('selected shape set builds colorful matching labels', () {
     final shapes = MemoryGameController(
       playerName: 'A',
       sideLabel: 'shapes',
@@ -136,7 +119,6 @@ void main() {
       isTrue,
     );
 
-    numbers.dispose();
     shapes.dispose();
   });
 
