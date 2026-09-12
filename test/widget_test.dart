@@ -15,13 +15,13 @@ void main() {
   testWidgets('app opens in mobile solo mode first', (tester) async {
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('İKİZİNİ\nBUL'), findsOneWidget);
-    expect(find.text('Oyuncu adı'), findsOneWidget);
-    expect(find.text('Başla'), findsOneWidget);
+    expect(find.text('İKİZİNİ BUL'), findsOneWidget);
+    expect(find.text('Adını yaz'), findsOneWidget);
+    expect(find.text('OYNA'), findsOneWidget);
     expect(find.text('4x4'), findsOneWidget);
     expect(find.text('5x5'), findsOneWidget);
-    expect(find.text('Kart Listesi'), findsOneWidget);
-    expect(find.text('Puan Tablosu'), findsOneWidget);
+    expect(find.text('Kartlar'), findsOneWidget);
+    expect(find.text('Puanlar'), findsOneWidget);
   });
 
   testWidgets('mobile shell fits narrow phone width', (tester) async {
@@ -31,7 +31,7 @@ void main() {
     await tester.pumpWidget(const BulBitirApp());
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Kart Listesi'), findsOneWidget);
+    expect(find.text('Kartlar'), findsOneWidget);
   });
 
   testWidgets('smart board race screen renders both sides', (tester) async {
@@ -75,9 +75,9 @@ void main() {
   ) async {
     await tester.pumpWidget(const BulBitirApp());
 
-    expect(find.text('Oyuncu adı'), findsOneWidget);
-    expect(find.text('Başla'), findsOneWidget);
-    expect(find.text('Puan Tablosu'), findsOneWidget);
+    expect(find.text('Adını yaz'), findsOneWidget);
+    expect(find.text('OYNA'), findsOneWidget);
+    expect(find.text('Puanlar'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).last, 'Ismail');
     await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -137,7 +137,7 @@ void main() {
     await tester.pumpWidget(const BulBitirApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Puan Tablosu'));
+    await tester.tap(find.text('Puanlar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Henüz puan yok'), findsOneWidget);
@@ -145,7 +145,7 @@ void main() {
     await tester.tap(find.byTooltip('Geri'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Kart Listesi'));
+    await tester.tap(find.text('Kartlar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Harfler'), findsOneWidget);

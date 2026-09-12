@@ -91,6 +91,18 @@ const List<BoardPreset> boardPresets = [
   BoardPreset(label: '5x5', pairCount: 12, columns: 5, slotCount: 25),
 ];
 
+abstract final class GameColors {
+  static const ink = Color(0xff263238);
+  static const coral = Color(0xffff6b6b);
+  static const yellow = Color(0xffffd166);
+  static const teal = Color(0xff06b894);
+  static const blue = Color(0xff4d96ff);
+  static const purple = Color(0xff845ec2);
+  static const canvas = Color(0xfffffbeb);
+
+  static const cardBacks = [coral, blue, teal, purple, Color(0xffff8f3d)];
+}
+
 String formatGameDuration(Duration duration) {
   final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
   final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
@@ -1065,22 +1077,11 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
         return LayoutBuilder(
           builder: (context, constraints) {
             return Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xffe9f7f4),
-                    Color(0xfffff8e7),
-                    Color(0xffeef2ff),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              padding: const EdgeInsets.all(18),
+              color: GameColors.canvas,
+              padding: const EdgeInsets.all(14),
               child: switch (_view) {
                 SoloView.menu => SoloNameEntry(
                   selectedPreset: _boardPreset,
-                  selectedContentSet: _soloContentSet,
                   onPresetChanged: _changeBoardPreset,
                   onJoin: _joinSolo,
                   onOpenCards: _openCards,
@@ -1116,7 +1117,6 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
 class SoloNameEntry extends StatefulWidget {
   const SoloNameEntry({
     required this.selectedPreset,
-    required this.selectedContentSet,
     required this.onPresetChanged,
     required this.onJoin,
     required this.onOpenCards,
@@ -1126,7 +1126,6 @@ class SoloNameEntry extends StatefulWidget {
   });
 
   final BoardPreset selectedPreset;
-  final CardContentSet selectedContentSet;
   final ValueChanged<BoardPreset> onPresetChanged;
   final ValueChanged<String> onJoin;
   final VoidCallback onOpenCards;
@@ -1148,135 +1147,138 @@ class _SoloNameEntryState extends State<SoloNameEntry> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xfff0c453), width: 2),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1f000000),
-            blurRadius: 20,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 390;
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactHeight = constraints.maxHeight < 700;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton.filledTonal(
-                      tooltip: 'Akıllı Tahta',
-                      onPressed: widget.onOpenSmartBoard,
-                      icon: const Icon(Icons.dashboard_customize),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Center(child: MemoryGameMark(size: 108)),
-                  const SizedBox(height: 12),
+                  Center(child: MemoryGameMark(size: compactHeight ? 76 : 96)),
+                  SizedBox(height: compactHeight ? 4 : 8),
                   const Text(
-                    'İKİZİNİ\nBUL',
+                    'İKİZİNİ BUL',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xff1f2937),
+                      color: GameColors.ink,
                       fontSize: 34,
-                      height: 0.92,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  SizedBox(height: compactHeight ? 18 : 28),
                   TextField(
                     controller: _nameController,
-                    autofocus: true,
                     textInputAction: TextInputAction.done,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Oyuncu adı',
-                      prefixIcon: Icon(Icons.badge_outlined),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
                     ),
-                    onSubmitted: _submit,
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 58,
-                    child: FilledButton.icon(
-                      onPressed: () => _submit(_nameController.text),
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text(
-                        'Başla',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Adını yaz',
+                      prefixIcon: const Icon(
+                        Icons.person_rounded,
+                        color: GameColors.purple,
+                        size: 28,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: GameColors.purple,
+                          width: 2,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: GameColors.purple,
+                          width: 2,
                         ),
                       ),
                     ),
+                    onSubmitted: _submit,
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Kaç kart olsun?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: GameColors.ink,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   BoardPresetSelector(
                     selectedPreset: widget.selectedPreset,
                     onChanged: widget.onPresetChanged,
                   ),
                   const SizedBox(height: 18),
-                  if (compact)
-                    Column(
-                      children: [
-                        MenuFooterButton(
-                          icon: Icons.style,
-                          label: 'Kart Listesi',
-                          onPressed: widget.onOpenCards,
+                  SizedBox(
+                    height: 66,
+                    child: FilledButton.icon(
+                      onPressed: () => _submit(_nameController.text),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: GameColors.coral,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 10),
-                        MenuFooterButton(
-                          icon: Icons.leaderboard,
-                          label: 'Puan Tablosu',
-                          onPressed: widget.onOpenScores,
+                      ),
+                      icon: const Icon(Icons.play_arrow_rounded, size: 34),
+                      label: const Text(
+                        'OYNA',
+                        style: TextStyle(
+                          fontSize: 23,
+                          fontWeight: FontWeight.w900,
                         ),
-                      ],
-                    )
-                  else
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MenuFooterButton(
-                            icon: Icons.style,
-                            label: 'Kart Listesi',
-                            onPressed: widget.onOpenCards,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: MenuFooterButton(
-                            icon: Icons.leaderboard,
-                            label: 'Puan Tablosu',
-                            onPressed: widget.onOpenScores,
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: Text(
-                      widget.selectedContentSet.name,
-                      style: const TextStyle(
-                        color: Color(0xff64748b),
-                        fontWeight: FontWeight.w800,
                       ),
                     ),
+                  ),
+                  SizedBox(height: compactHeight ? 18 : 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MenuFooterButton(
+                          icon: Icons.style_rounded,
+                          label: 'Kartlar',
+                          color: GameColors.blue,
+                          onPressed: widget.onOpenCards,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MenuFooterButton(
+                          icon: Icons.emoji_events_rounded,
+                          label: 'Puanlar',
+                          color: GameColors.yellow,
+                          onPressed: widget.onOpenScores,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MenuFooterButton(
+                          icon: Icons.cast_for_education_rounded,
+                          label: 'Tahta',
+                          color: GameColors.teal,
+                          tooltip: 'Akıllı Tahta',
+                          onPressed: widget.onOpenSmartBoard,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -1303,23 +1305,14 @@ class BoardPresetSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        for (final preset in boardPresets) ...[
+        for (final (index, preset) in boardPresets.indexed) ...[
           Expanded(
-            child: ChoiceChip(
+            child: _BoardPresetButton(
+              preset: preset,
               selected: selectedPreset.label == preset.label,
-              label: SizedBox(
-                height: 40,
-                child: Center(
-                  child: Text(
-                    preset.label,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-              onSelected: (_) => onChanged(preset),
+              color: index == 0 ? GameColors.blue : GameColors.purple,
+              subtitle: index == 0 ? 'Kolay' : 'Büyük',
+              onTap: () => onChanged(preset),
             ),
           ),
           if (preset != boardPresets.last) const SizedBox(width: 12),
@@ -1329,24 +1322,112 @@ class BoardPresetSelector extends StatelessWidget {
   }
 }
 
+class _BoardPresetButton extends StatelessWidget {
+  const _BoardPresetButton({
+    required this.preset,
+    required this.selected,
+    required this.color,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final BoardPreset preset;
+  final bool selected;
+  final Color color;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected ? Colors.white : GameColors.ink;
+    return Material(
+      color: selected ? color : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: color, width: 2.5),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          height: 78,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                preset.label,
+                style: TextStyle(
+                  color: foreground,
+                  fontSize: 25,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: foreground.withAlpha(220),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class MenuFooterButton extends StatelessWidget {
   const MenuFooterButton({
     required this.icon,
     required this.label,
+    required this.color,
     required this.onPressed,
+    this.tooltip,
     super.key,
   });
 
   final IconData icon;
   final String label;
+  final Color color;
   final VoidCallback onPressed;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+    return Tooltip(
+      message: tooltip ?? label,
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: color, width: 2),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            height: 72,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 29),
+                const SizedBox(height: 3),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: GameColors.ink,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1385,36 +1466,48 @@ class SoloPlayScreen extends StatelessWidget {
 
     return Column(
       children: [
-        Row(
-          children: [
-            IconButton.filledTonal(
-              tooltip: 'Ana Menü',
-              onPressed: onHome,
-              icon: const Icon(Icons.home),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                controller.playerName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xff1f2937),
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
+        Container(
+          height: 58,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: GameColors.yellow, width: 2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: 'Ana Menü',
+                onPressed: onHome,
+                icon: const Icon(
+                  Icons.home_rounded,
+                  color: GameColors.coral,
+                  size: 30,
                 ),
               ),
-            ),
-            IconButton.outlined(
-              tooltip: 'Sıfırla',
-              onPressed: onReset,
-              icon: const Icon(Icons.refresh),
-            ),
-          ],
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  controller.playerName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: GameColors.ink,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.auto_awesome_rounded,
+                color: GameColors.yellow,
+                size: 29,
+              ),
+              const SizedBox(width: 10),
+            ],
+          ),
         ),
-        const SizedBox(height: 14),
-        Expanded(child: SoloBoard(controller: controller)),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -1422,23 +1515,27 @@ class SoloPlayScreen extends StatelessWidget {
                 icon: Icons.timer,
                 label: 'Süre',
                 value: formatGameDuration(controller.elapsed),
+                color: GameColors.blue,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: MiniMetric(
                 icon: Icons.emoji_events,
                 label: 'Puan',
                 value: '${controller.matchedPairs * 100}',
+                color: GameColors.purple,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
+        Expanded(child: SoloBoard(controller: controller)),
+        const SizedBox(height: 10),
         SizedBox(
-          width: 96,
-          height: 96,
-          child: FilledButton(
+          width: double.infinity,
+          height: 62,
+          child: FilledButton.icon(
             onPressed: () {
               switch (controller.status) {
                 case MemoryGameStatus.ready:
@@ -1452,19 +1549,21 @@ class SoloPlayScreen extends StatelessWidget {
                   onStart();
               }
             },
-            style: FilledButton.styleFrom(shape: const CircleBorder()),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(actionIcon),
-                const SizedBox(height: 4),
-                FittedBox(
-                  child: Text(
-                    actionLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ),
-              ],
+            style: FilledButton.styleFrom(
+              backgroundColor: controller.status == MemoryGameStatus.running
+                  ? GameColors.yellow
+                  : GameColors.coral,
+              foregroundColor: controller.status == MemoryGameStatus.running
+                  ? GameColors.ink
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: Icon(actionIcon, size: 30),
+            label: Text(
+              actionLabel,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
           ),
         ),
@@ -1478,26 +1577,28 @@ class MiniMetric extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.color = const Color(0xff0f766e),
     super.key,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 64,
+      height: 58,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xffd5e1dd)),
+        border: Border.all(color: color, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xff0f766e)),
+          Icon(icon, color: color, size: 27),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1509,8 +1610,9 @@ class MiniMetric extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xff64748b),
+                    color: GameColors.ink,
                     fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
                 Text(
@@ -1518,7 +1620,7 @@ class MiniMetric extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xff1f2937),
+                    color: GameColors.ink,
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
@@ -1946,11 +2048,12 @@ class SoloBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xffd9f4ef),
+        color: const Color(0xffe8f8f4),
+        border: Border.all(color: GameColors.teal, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(9),
         child: MemoryCardGrid(
           controller: controller,
           accent: const Color(0xff0f766e),
@@ -3264,7 +3367,10 @@ class MemoryCardTile extends StatelessWidget {
       );
     }
     final isFaceUp = card.isFaceUp;
-    final borderColor = isFaceUp ? accent : const Color(0xffbdd0cb);
+    final backColor =
+        GameColors.cardBacks[(card.id.hashCode & 0x7fffffff) %
+            GameColors.cardBacks.length];
+    final borderColor = isFaceUp ? accent : Colors.white;
 
     return Material(
       color: Colors.transparent,
@@ -3275,9 +3381,9 @@ class MemoryCardTile extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: isFaceUp ? Colors.white : const Color(0xff243b36),
+            color: isFaceUp ? Colors.white : backColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: borderColor, width: isFaceUp ? 3 : 1.5),
+            border: Border.all(color: borderColor, width: isFaceUp ? 3 : 2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(isFaceUp ? 34 : 22),
@@ -3302,13 +3408,13 @@ class MemoryCardTile extends StatelessWidget {
                           matched: isMatched,
                         ),
                       )
-                    : const FittedBox(
-                        key: ValueKey('back'),
+                    : FittedBox(
+                        key: ValueKey('back-${card.id}'),
                         fit: BoxFit.scaleDown,
-                        child: Icon(
+                        child: const Icon(
                           Icons.question_mark,
                           color: Colors.white,
-                          size: 42,
+                          size: 46,
                         ),
                       ),
               ),
